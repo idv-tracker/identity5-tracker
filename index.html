@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>第五人格 勝率計算アプリ</title>
+  <title>第五トラッカー</title>
   <style>
     * {
       margin: 0;
@@ -35,8 +35,15 @@
     }
     
     .header h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
+      font-size: 32px;
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+    
+    .header .subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 400;
     }
     
     .perspective-tabs {
@@ -131,18 +138,11 @@
       border-color: #0f3460;
     }
     
-    .character-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    
     .result-buttons {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 10px;
-      margin-top: 20px;
+      margin-top: 10px;
     }
     
     .result-button {
@@ -190,6 +190,30 @@
       transform: translateY(0);
     }
     
+    .filter-section {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .filter-label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+    
     .stats-card {
       background: #f8f9fa;
       padding: 20px;
@@ -204,35 +228,120 @@
       color: #333;
     }
     
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
-    }
-    
-    .stat-item {
+    .overall-stats-display {
       background: white;
-      padding: 15px;
-      border-radius: 6px;
-      border-left: 4px solid #0f3460;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
     }
     
-    .stat-name {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 5px;
-    }
-    
-    .stat-value {
-      font-size: 24px;
+    .winrate-big {
+      font-size: 48px;
       font-weight: 700;
       color: #0f3460;
+      margin-bottom: 10px;
     }
     
-    .stat-detail {
-      font-size: 12px;
+    .record-text {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    
+    .streak-icon {
+      font-size: 20px;
+    }
+    
+    /* 横棒グラフスタイル */
+    .bar-chart-horizontal {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+    }
+    
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 45px;
+    }
+    
+    .bar-label-wrapper {
+      min-width: 110px;
+      max-width: 110px;
+      flex-shrink: 0;
+    }
+    
+    .bar-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      word-wrap: break-word;
+      margin-bottom: 3px;
+    }
+    
+    .bar-sublabel {
+      font-size: 10px;
       color: #999;
-      margin-top: 5px;
+      line-height: 1.3;
+    }
+    
+    .bar-wrapper {
+      flex: 1;
+      min-width: 0;
+      height: 28px;
+      background: #f0f0f0;
+      border-radius: 14px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    
+    .bar-visual {
+      height: 100%;
+      background: linear-gradient(90deg, #60a5fa, #3b82f6);
+      border-radius: 14px;
+      transition: width 0.3s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+    }
+    
+    .bar-value {
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    
+    .bar-value-zero {
+      position: static;
+      transform: none;
+      color: #999;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 600;
+      padding-left: 10px;
     }
     
     .match-history {
@@ -315,62 +424,6 @@
       background: #c82333;
     }
     
-    .chart-container {
-      margin: 20px 0;
-      padding: 15px;
-      background: white;
-      border-radius: 6px;
-      border: 1px solid #dee2e6;
-    }
-    
-    .bar-chart {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .bar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .bar-label {
-      min-width: 120px;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    
-    .bar-wrapper {
-      flex: 1;
-      height: 30px;
-      background: #e9ecef;
-      border-radius: 4px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #0f3460 0%, #533483 100%);
-      border-radius: 4px;
-      transition: width 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding-right: 8px;
-      color: white;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .bar-stats {
-      min-width: 100px;
-      text-align: right;
-      font-size: 12px;
-      color: #666;
-    }
-    
     .empty-state {
       text-align: center;
       padding: 40px;
@@ -386,7 +439,8 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>第五人格 勝率計算アプリ</h1>
+      <h1>第五トラッカー</h1>
+      <div class="subtitle">第五人格の戦績管理・勝率計算</div>
     </div>
     
     <div class="perspective-tabs">
@@ -396,7 +450,6 @@
     
     <div class="main-tabs">
       <button class="main-tab active" onclick="switchTab('input')">試合入力</button>
-      <button class="main-tab" onclick="switchTab('overall')">総合勝率</button>
       <button class="main-tab" onclick="switchTab('character')">自キャラ別勝率</button>
       <button class="main-tab" onclick="switchTab('map')">マップ別勝率</button>
       <button class="main-tab" onclick="switchTab('opponent')">対戦相手別勝率</button>
@@ -406,31 +459,40 @@
     <div class="content">
       <!-- 試合入力タブ -->
       <div id="input-tab" class="tab-content active">
+        <div id="overall-stats-inline"></div>
+        
         <div id="survivor-input">
           <div class="form-group">
+            <label class="form-label">段位</label>
+            <select id="survivor-rank">
+              <option value="">選択してください</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
             <label class="form-label">自分のサバイバー</label>
-            <select id="my-survivor">
+            <select id="my-survivor" onchange="updateSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
           
           <div class="form-group">
             <label class="form-label">味方サバイバー1</label>
-            <select id="teammate-1">
+            <select id="teammate-1" onchange="updateSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
           
           <div class="form-group">
             <label class="form-label">味方サバイバー2</label>
-            <select id="teammate-2">
+            <select id="teammate-2" onchange="updateSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
           
           <div class="form-group">
             <label class="form-label">味方サバイバー3</label>
-            <select id="teammate-3">
+            <select id="teammate-3" onchange="updateSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
@@ -451,7 +513,7 @@
           
           <div class="form-group">
             <label class="form-label">脱出人数</label>
-            <div class="result-buttons" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="result-buttons">
               <button class="result-button" onclick="selectEscapeCount('survivor', 0)">0人</button>
               <button class="result-button" onclick="selectEscapeCount('survivor', 1)">1人</button>
               <button class="result-button" onclick="selectEscapeCount('survivor', 2)">2人</button>
@@ -465,6 +527,13 @@
         
         <div id="hunter-input" style="display: none;">
           <div class="form-group">
+            <label class="form-label">段位</label>
+            <select id="hunter-rank">
+              <option value="">選択してください</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
             <label class="form-label">自分のハンター</label>
             <select id="my-hunter">
               <option value="">選択してください</option>
@@ -473,28 +542,28 @@
           
           <div class="form-group">
             <label class="form-label">相手サバイバー1</label>
-            <select id="opponent-survivor-1">
+            <select id="opponent-survivor-1" onchange="updateOpponentSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
           
           <div class="form-group">
             <label class="form-label">相手サバイバー2</label>
-            <select id="opponent-survivor-2">
+            <select id="opponent-survivor-2" onchange="updateOpponentSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
           
           <div class="form-group">
             <label class="form-label">相手サバイバー3</label>
-            <select id="opponent-survivor-3">
+            <select id="opponent-survivor-3" onchange="updateOpponentSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
           
           <div class="form-group">
             <label class="form-label">相手サバイバー4</label>
-            <select id="opponent-survivor-4">
+            <select id="opponent-survivor-4" onchange="updateOpponentSurvivorSelects()">
               <option value="">選択してください</option>
             </select>
           </div>
@@ -508,7 +577,7 @@
           
           <div class="form-group">
             <label class="form-label">脱出人数</label>
-            <div class="result-buttons" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="result-buttons">
               <button class="result-button" onclick="selectEscapeCount('hunter', 0)">0人</button>
               <button class="result-button" onclick="selectEscapeCount('hunter', 1)">1人</button>
               <button class="result-button" onclick="selectEscapeCount('hunter', 2)">2人</button>
@@ -521,28 +590,73 @@
         </div>
       </div>
       
-      <!-- 総合勝率タブ -->
-      <div id="overall-tab" class="tab-content">
-        <div id="overall-stats"></div>
-      </div>
-      
       <!-- 自キャラ別勝率タブ -->
       <div id="character-tab" class="tab-content">
+        <div class="filter-section">
+          <div class="filter-group">
+            <label class="filter-label">段位フィルター</label>
+            <select id="character-rank-filter" onchange="updateAllStats()">
+              <option value="all">全段位</option>
+            </select>
+          </div>
+        </div>
         <div id="character-stats"></div>
       </div>
       
       <!-- マップ別勝率タブ -->
       <div id="map-tab" class="tab-content">
+        <div class="filter-section">
+          <div class="filter-group">
+            <label class="filter-label">段位フィルター</label>
+            <select id="map-rank-filter" onchange="updateAllStats()">
+              <option value="all">全段位</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">自キャラフィルター</label>
+            <select id="map-char-filter" onchange="updateAllStats()">
+              <option value="all">全キャラ</option>
+            </select>
+          </div>
+        </div>
         <div id="map-stats"></div>
       </div>
       
       <!-- 対戦相手別勝率タブ -->
       <div id="opponent-tab" class="tab-content">
+        <div class="filter-section">
+          <div class="filter-group">
+            <label class="filter-label">段位フィルター</label>
+            <select id="opponent-rank-filter" onchange="updateAllStats()">
+              <option value="all">全段位</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">自キャラフィルター</label>
+            <select id="my-char-filter" onchange="onMyCharFilterChange()">
+              <option value="all">全キャラ</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">マップフィルター</label>
+            <select id="opponent-map-filter" onchange="updateAllStats()">
+              <option value="all">全マップ</option>
+            </select>
+          </div>
+        </div>
         <div id="opponent-stats"></div>
       </div>
       
       <!-- 試合履歴タブ -->
       <div id="history-tab" class="tab-content">
+        <div class="filter-section">
+          <div class="filter-group">
+            <label class="filter-label">段位フィルター</label>
+            <select id="history-rank-filter" onchange="updateAllStats()">
+              <option value="all">全段位</option>
+            </select>
+          </div>
+        </div>
         <div id="match-history"></div>
         <button class="reset-button" onclick="resetAllData()">全データをリセット</button>
       </div>
@@ -556,6 +670,8 @@
     
     const MAPS = ['軍需工場', '赤の教会', '聖心病院', '湖景村', '月の河公園', 'レオの思い出', '永眠町', '中華街', '罪の森'];
     
+    const RANKS = ['1段', '2段', '3段', '4段', '5段', '6段', '7段', '最高峰'];
+    
     let currentPerspective = 'survivor';
     let selectedEscapeCount = { survivor: null, hunter: null };
     let matches = [];
@@ -563,9 +679,75 @@
     
     // 初期化
     function init() {
-      loadData();
       populateSelects();
-      updateAllStats();
+      updateSurvivorSelects(); // サバイバー選択肢の初期化
+      updateOpponentSurvivorSelects(); // 相手サバイバー選択肢の初期化
+      loadData(); // データを読み込む
+      updateAllWithFilters(); // フィルターと統計を更新
+    }
+    
+    // サバイバー選択肢を更新（重複を除外）
+    function updateSurvivorSelects() {
+      const mySurvivor = document.getElementById('my-survivor').value;
+      const teammate1 = document.getElementById('teammate-1').value;
+      const teammate2 = document.getElementById('teammate-2').value;
+      const teammate3 = document.getElementById('teammate-3').value;
+      
+      const selected = [mySurvivor, teammate1, teammate2, teammate3].filter(v => v);
+      
+      const selectIds = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3'];
+      
+      selectIds.forEach(id => {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        
+        // 選択肢を再構築
+        select.innerHTML = '<option value="">選択してください</option>';
+        SURVIVORS.forEach(survivor => {
+          // 自分が選択中か、他で選択されていない場合のみ表示
+          if (survivor === currentValue || !selected.includes(survivor)) {
+            const option = document.createElement('option');
+            option.value = survivor;
+            option.textContent = survivor;
+            select.appendChild(option);
+          }
+        });
+        
+        // 値を復元
+        select.value = currentValue;
+      });
+    }
+    
+    // ハンター視点の相手サバイバー選択肢を更新（重複を除外）
+    function updateOpponentSurvivorSelects() {
+      const survivor1 = document.getElementById('opponent-survivor-1').value;
+      const survivor2 = document.getElementById('opponent-survivor-2').value;
+      const survivor3 = document.getElementById('opponent-survivor-3').value;
+      const survivor4 = document.getElementById('opponent-survivor-4').value;
+      
+      const selected = [survivor1, survivor2, survivor3, survivor4].filter(v => v);
+      
+      const selectIds = ['opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
+      
+      selectIds.forEach(id => {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        
+        // 選択肢を再構築
+        select.innerHTML = '<option value="">選択してください</option>';
+        SURVIVORS.forEach(survivor => {
+          // 自分が選択中か、他で選択されていない場合のみ表示
+          if (survivor === currentValue || !selected.includes(survivor)) {
+            const option = document.createElement('option');
+            option.value = survivor;
+            option.textContent = survivor;
+            select.appendChild(option);
+          }
+        });
+        
+        // 値を復元
+        select.value = currentValue;
+      });
     }
     
     // セレクトボックスにオプションを追加
@@ -602,6 +784,176 @@
           select.appendChild(option);
         });
       });
+      
+      const rankSelects = ['survivor-rank', 'hunter-rank'];
+      rankSelects.forEach(id => {
+        const select = document.getElementById(id);
+        RANKS.forEach(rank => {
+          const option = document.createElement('option');
+          option.value = rank;
+          option.textContent = rank;
+          select.appendChild(option);
+        });
+      });
+      
+      // サバイバー選択時の重複チェックを追加
+      ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => updateSurvivorSelectOptions());
+      });
+      
+      // ハンター視点のサバイバー選択時の重複チェックを追加
+      ['opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => updateHunterOpponentSelectOptions());
+      });
+    }
+    
+    // サバイバー視点：選択済みキャラを他の選択肢から除外
+    function updateSurvivorSelectOptions() {
+      const mySurvivor = document.getElementById('my-survivor').value;
+      const teammate1 = document.getElementById('teammate-1').value;
+      const teammate2 = document.getElementById('teammate-2').value;
+      const teammate3 = document.getElementById('teammate-3').value;
+      
+      const selected = [mySurvivor, teammate1, teammate2, teammate3].filter(v => v);
+      
+      ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3'].forEach(id => {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        
+        // 選択肢を再構築
+        select.innerHTML = '<option value="">選択してください</option>';
+        SURVIVORS.forEach(survivor => {
+          // 自分以外で選択されているキャラは除外
+          if (!selected.includes(survivor) || survivor === currentValue) {
+            const option = document.createElement('option');
+            option.value = survivor;
+            option.textContent = survivor;
+            select.appendChild(option);
+          }
+        });
+        
+        // 現在の値を復元
+        select.value = currentValue;
+      });
+    }
+    
+    // ハンター視点：選択済みキャラを他の選択肢から除外
+    function updateHunterOpponentSelectOptions() {
+      const opponent1 = document.getElementById('opponent-survivor-1').value;
+      const opponent2 = document.getElementById('opponent-survivor-2').value;
+      const opponent3 = document.getElementById('opponent-survivor-3').value;
+      const opponent4 = document.getElementById('opponent-survivor-4').value;
+      
+      const selected = [opponent1, opponent2, opponent3, opponent4].filter(v => v);
+      
+      ['opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'].forEach(id => {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        
+        // 選択肢を再構築
+        select.innerHTML = '<option value="">選択してください</option>';
+        SURVIVORS.forEach(survivor => {
+          // 自分以外で選択されているキャラは除外
+          if (!selected.includes(survivor) || survivor === currentValue) {
+            const option = document.createElement('option');
+            option.value = survivor;
+            option.textContent = survivor;
+            select.appendChild(option);
+          }
+        });
+        
+        // 現在の値を復元
+        select.value = currentValue;
+      });
+    }
+    
+    // 段位フィルターを設定（使用済み段位のみ）
+    function populateRankFilters() {
+      const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
+      const usedRanks = [...new Set(perspectiveMatches.map(m => m.rank).filter(r => r))];
+      
+      // RANKS配列の順序を保持してソート
+      const sortedRanks = RANKS.filter(rank => usedRanks.includes(rank));
+      
+      const filterIds = ['character-rank-filter', 'map-rank-filter', 'opponent-rank-filter', 'history-rank-filter'];
+      filterIds.forEach(id => {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        select.innerHTML = '<option value="all">全段位</option>';
+        
+        sortedRanks.forEach(rank => {
+          const option = document.createElement('option');
+          option.value = rank;
+          option.textContent = rank;
+          select.appendChild(option);
+        });
+        
+        // 前回選択していた値を復元
+        if (currentValue && (currentValue === 'all' || sortedRanks.includes(currentValue))) {
+          select.value = currentValue;
+        }
+      });
+      
+      // マップフィルター（対戦相手別勝率用、自キャラフィルターに連動）
+      const myCharFilterValue = document.getElementById('my-char-filter')?.value || 'all';
+      updateMapFilter(myCharFilterValue);
+      
+      // 自キャラフィルター
+      updateMyCharFilter();
+    }
+    
+    // マップフィルターを更新（自キャラフィルターに連動）
+    function updateMapFilter(selectedChar = 'all') {
+      const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
+      
+      // 自キャラでフィルター
+      let filteredMatches = perspectiveMatches;
+      if (selectedChar !== 'all') {
+        filteredMatches = perspectiveMatches.filter(m => m.myCharacter === selectedChar);
+      }
+      
+      const usedMaps = [...new Set(filteredMatches.map(m => m.map))].sort();
+      
+      const mapSelect = document.getElementById('opponent-map-filter');
+      const currentValue = mapSelect.value;
+      mapSelect.innerHTML = '<option value="all">全マップ</option>';
+      usedMaps.forEach(map => {
+        const option = document.createElement('option');
+        option.value = map;
+        option.textContent = map;
+        mapSelect.appendChild(option);
+      });
+      
+      // 前回選択していた値を復元（存在する場合のみ）
+      if (currentValue && (currentValue === 'all' || usedMaps.includes(currentValue))) {
+        mapSelect.value = currentValue;
+      }
+    }
+    
+    // 自キャラフィルターを更新（使用済みキャラのみ）
+    function updateMyCharFilter() {
+      const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
+      const usedChars = [...new Set(perspectiveMatches.map(m => m.myCharacter))].sort();
+      
+      // 対戦相手別勝率のフィルター
+      const opponentSelect = document.getElementById('my-char-filter');
+      opponentSelect.innerHTML = '<option value="all">全キャラ</option>';
+      usedChars.forEach(char => {
+        const option = document.createElement('option');
+        option.value = char;
+        option.textContent = char;
+        opponentSelect.appendChild(option);
+      });
+      
+      // マップ別勝率のフィルター
+      const mapSelect = document.getElementById('map-char-filter');
+      mapSelect.innerHTML = '<option value="all">全キャラ</option>';
+      usedChars.forEach(char => {
+        const option = document.createElement('option');
+        option.value = char;
+        option.textContent = char;
+        mapSelect.appendChild(option);
+      });
     }
     
     // 視点を切り替え
@@ -621,7 +973,7 @@
         document.getElementById('hunter-input').style.display = 'block';
       }
       
-      updateAllStats();
+      updateAllWithFilters();
     }
     
     // タブを切り替え
@@ -672,6 +1024,7 @@
       };
       
       if (perspective === 'survivor') {
+        const rank = document.getElementById('survivor-rank').value;
         const mySurvivor = document.getElementById('my-survivor').value;
         const teammate1 = document.getElementById('teammate-1').value;
         const teammate2 = document.getElementById('teammate-2').value;
@@ -680,28 +1033,20 @@
         const map = document.getElementById('survivor-map').value;
         const escapeCount = selectedEscapeCount.survivor;
         
-        if (!mySurvivor || !teammate1 || !teammate2 || !teammate3 || !opponentHunter || !map || escapeCount === null) {
+        if (!rank || !mySurvivor || !teammate1 || !teammate2 || !teammate3 || !opponentHunter || !map || escapeCount === null) {
           alert('全ての項目を入力してください');
           return;
         }
         
-        const teammates = [teammate1, teammate2, teammate3];
-        if (teammates.includes(mySurvivor)) {
-          alert('自分のキャラクターと味方が重複しています');
-          return;
-        }
-        if (new Set(teammates).size !== teammates.length) {
-          alert('味方のキャラクターが重複しています');
-          return;
-        }
-        
+        match.rank = rank;
         match.myCharacter = mySurvivor;
-        match.teammates = teammates;
+        match.teammates = [teammate1, teammate2, teammate3];
         match.opponentHunter = opponentHunter;
         match.map = map;
         match.escapeCount = escapeCount;
         match.result = getResultFromEscapeCount(escapeCount, perspective);
       } else {
+        const rank = document.getElementById('hunter-rank').value;
         const myHunter = document.getElementById('my-hunter').value;
         const opponentSurvivor1 = document.getElementById('opponent-survivor-1').value;
         const opponentSurvivor2 = document.getElementById('opponent-survivor-2').value;
@@ -710,19 +1055,14 @@
         const map = document.getElementById('hunter-map').value;
         const escapeCount = selectedEscapeCount.hunter;
         
-        if (!myHunter || !opponentSurvivor1 || !opponentSurvivor2 || !opponentSurvivor3 || !opponentSurvivor4 || !map || escapeCount === null) {
+        if (!rank || !myHunter || !opponentSurvivor1 || !opponentSurvivor2 || !opponentSurvivor3 || !opponentSurvivor4 || !map || escapeCount === null) {
           alert('全ての項目を入力してください');
           return;
         }
         
-        const opponents = [opponentSurvivor1, opponentSurvivor2, opponentSurvivor3, opponentSurvivor4];
-        if (new Set(opponents).size !== opponents.length) {
-          alert('相手のキャラクターが重複しています');
-          return;
-        }
-        
+        match.rank = rank;
         match.myCharacter = myHunter;
-        match.opponentSurvivors = opponents;
+        match.opponentSurvivors = [opponentSurvivor1, opponentSurvivor2, opponentSurvivor3, opponentSurvivor4];
         match.map = map;
         match.escapeCount = escapeCount;
         match.result = getResultFromEscapeCount(escapeCount, perspective);
@@ -735,15 +1075,19 @@
       
       matches.push(match);
       saveData();
+      
+      // 前回の入力値を保存（段位と自キャラのみ）
+      saveLastInput(perspective, match.rank, match.myCharacter);
+      
       resetForm(perspective);
       alert('試合を記録しました！');
-      updateAllStats();
+      updateAllWithFilters();
     }
     
-    // フォームをリセット
+    // フォームをリセット（段位と自キャラは保持）
     function resetForm(perspective) {
       if (perspective === 'survivor') {
-        document.getElementById('my-survivor').value = '';
+        // 段位と自キャラは保持
         document.getElementById('teammate-1').value = '';
         document.getElementById('teammate-2').value = '';
         document.getElementById('teammate-3').value = '';
@@ -753,8 +1097,9 @@
         document.querySelectorAll('#survivor-input .result-button').forEach(btn => {
           btn.classList.remove('selected');
         });
+        updateSurvivorSelectOptions(); // 選択肢を更新
       } else {
-        document.getElementById('my-hunter').value = '';
+        // 段位と自キャラは保持
         document.getElementById('opponent-survivor-1').value = '';
         document.getElementById('opponent-survivor-2').value = '';
         document.getElementById('opponent-survivor-3').value = '';
@@ -764,6 +1109,7 @@
         document.querySelectorAll('#hunter-input .result-button').forEach(btn => {
           btn.classList.remove('selected');
         });
+        updateHunterOpponentSelectOptions(); // 選択肢を更新
       }
     }
     
@@ -778,6 +1124,43 @@
       if (saved) {
         matches = JSON.parse(saved);
       }
+      
+      // 前回の入力値を復元
+      const lastInputSurvivor = localStorage.getItem('identity5_last_input_survivor');
+      if (lastInputSurvivor) {
+        const data = JSON.parse(lastInputSurvivor);
+        if (data.rank) document.getElementById('survivor-rank').value = data.rank;
+        if (data.myCharacter) document.getElementById('my-survivor').value = data.myCharacter;
+      }
+      
+      const lastInputHunter = localStorage.getItem('identity5_last_input_hunter');
+      if (lastInputHunter) {
+        const data = JSON.parse(lastInputHunter);
+        if (data.rank) document.getElementById('hunter-rank').value = data.rank;
+        if (data.myCharacter) document.getElementById('my-hunter').value = data.myCharacter;
+      }
+    }
+    
+    // 入力値を保存
+    function saveLastInput(perspective, rank, myCharacter) {
+      const key = `identity5_last_input_${perspective}`;
+      localStorage.setItem(key, JSON.stringify({ rank, myCharacter }));
+    }
+    
+    // フィルタリングされたデータを取得
+    function getFilteredMatches(rankFilter) {
+      let filtered = matches.filter(m => m.perspective === currentPerspective);
+      if (rankFilter && rankFilter !== 'all') {
+        filtered = filtered.filter(m => m.rank === rankFilter);
+      }
+      return filtered;
+    }
+    
+    // 自キャラフィルター変更時の処理
+    function onMyCharFilterChange() {
+      const selectedChar = document.getElementById('my-char-filter').value;
+      updateMapFilter(selectedChar);
+      updateAllStats();
     }
     
     // 全ての統計を更新
@@ -789,10 +1172,17 @@
       updateMatchHistory();
     }
     
+    // フィルターを含む全てを更新
+    function updateAllWithFilters() {
+      populateRankFilters();
+      updateAllStats();
+    }
+    
     // 勝率を計算
     function calculateWinrate(matches, perspective) {
+      const totalWithDraws = matches.length; // 引き分けを含む総試合数
       const filtered = matches.filter(m => m.result !== 'draw');
-      if (filtered.length === 0) return { wins: 0, losses: 0, draws: 0, winrate: 0, total: 0 };
+      if (filtered.length === 0) return { wins: 0, losses: 0, draws: totalWithDraws, winrate: '0.0', total: 0, totalWithDraws: totalWithDraws };
       
       const wins = filtered.filter(m => {
         if (perspective === 'survivor') {
@@ -806,55 +1196,72 @@
       const draws = matches.filter(m => m.result === 'draw').length;
       const winrate = (wins / filtered.length * 100).toFixed(1);
       
-      return { wins, losses, draws, winrate, total: matches.length };
+      return { wins, losses, draws, winrate, total: filtered.length, totalWithDraws: totalWithDraws };
     }
     
-    // 総合勝率を更新
+    // 連勝数を計算
+    function calculateWinStreak(matches, perspective) {
+      if (matches.length === 0) return 0;
+      
+      // 最新の試合から遡る
+      const sorted = [...matches].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      let streak = 0;
+      
+      for (const match of sorted) {
+        if (match.result === 'draw') continue; // 引き分けは無視
+        
+        const isWin = (perspective === 'survivor' && match.result === 'survivor_win') || 
+                      (perspective === 'hunter' && match.result === 'hunter_win');
+        
+        if (isWin) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      
+      return streak;
+    }
+    
+    // 平均脱出/脱落人数を計算
+    function calculateAverageEscapeCount(matches, perspective) {
+      if (matches.length === 0) return 0;
+      
+      const total = matches.reduce((sum, m) => sum + (m.escapeCount || 0), 0);
+      return (total / matches.length).toFixed(1);
+    }
+    
+    // 総合勝率を更新（試合入力タブ内）
     function updateOverallStats() {
-      const container = document.getElementById('overall-stats');
+      const container = document.getElementById('overall-stats-inline');
       const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
       
       if (perspectiveMatches.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>まだ試合データがありません</p></div>';
+        container.innerHTML = '';
         return;
       }
       
       const stats = calculateWinrate(perspectiveMatches, currentPerspective);
+      const streak = calculateWinStreak(perspectiveMatches, currentPerspective);
       
-      container.innerHTML = `
-        <div class="stats-card">
-          <div class="stats-title">総合勝率（${currentPerspective === 'survivor' ? 'サバイバー視点' : 'ハンター視点'}）</div>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-name">総試合数</div>
-              <div class="stat-value">${stats.total}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-name">勝利数</div>
-              <div class="stat-value">${stats.wins}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-name">敗北数</div>
-              <div class="stat-value">${stats.losses}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-name">引き分け</div>
-              <div class="stat-value">${stats.draws}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-name">勝率（引き分け除く）</div>
-              <div class="stat-value">${stats.winrate}%</div>
-              <div class="stat-detail">${stats.wins}勝 ${stats.losses}敗</div>
-            </div>
-          </div>
-        </div>
-      `;
+      let html = `<div class="stats-card" style="margin-bottom: 20px;">
+        <div class="overall-stats-display">
+          <div class="winrate-big">${stats.winrate}%</div>
+          <div class="record-text">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分け (${stats.totalWithDraws}試合)</div>`;
+      
+      if (streak >= 2) {
+        html += `<div class="streak-badge"><span class="streak-icon">🔥</span>${streak}連勝中！</div>`;
+      }
+      
+      html += `</div></div>`;
+      container.innerHTML = html;
     }
     
     // 自キャラ別勝率を更新
     function updateCharacterStats() {
       const container = document.getElementById('character-stats');
-      const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
+      const rankFilter = document.getElementById('character-rank-filter').value;
+      const perspectiveMatches = getFilteredMatches(rankFilter);
       
       if (perspectiveMatches.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎭</div><p>まだ試合データがありません</p></div>';
@@ -874,20 +1281,61 @@
       const sortedChars = Object.keys(characterStats).sort((a, b) => {
         const statsA = calculateWinrate(characterStats[a], currentPerspective);
         const statsB = calculateWinrate(characterStats[b], currentPerspective);
-        return parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+        
+        // 勝率で比較
+        const winrateA = parseFloat(statsA.winrate);
+        const winrateB = parseFloat(statsB.winrate);
+        const winrateDiff = winrateB - winrateA;
+        if (winrateDiff !== 0) return winrateDiff;
+        
+        // 勝率が同じなら平均脱出/脱落人数で比較
+        const avgEscapeA = parseFloat(calculateAverageEscapeCount(characterStats[a], currentPerspective));
+        const avgEscapeB = parseFloat(calculateAverageEscapeCount(characterStats[b], currentPerspective));
+        
+        if (currentPerspective === 'survivor') {
+          // サバイバー: 平均脱出人数が多い順
+          const avgDiff = avgEscapeB - avgEscapeA;
+          if (Math.abs(avgDiff) > 0.01) return avgDiff;
+        } else {
+          // ハンター: 平均脱落人数が多い順（脱落 = 4 - 脱出）
+          const avgFallA = 4 - avgEscapeA;
+          const avgFallB = 4 - avgEscapeB;
+          const avgDiff = avgFallB - avgFallA;
+          if (Math.abs(avgDiff) > 0.01) return avgDiff;
+        }
+        
+        // それでも同じなら試合数で比較（引き分け含む）
+        return statsB.totalWithDraws - statsA.totalWithDraws;
       });
       
       let html = `<div class="stats-card">
         <div class="stats-title">キャラクター別勝率（${currentPerspective === 'survivor' ? 'サバイバー' : 'ハンター'}）</div>
-        <div class="stats-grid">`;
+        <div class="bar-chart-horizontal">`;
       
       sortedChars.forEach(char => {
         const stats = calculateWinrate(characterStats[char], currentPerspective);
+        const avgEscape = calculateAverageEscapeCount(characterStats[char], currentPerspective);
+        const winrateNum = parseFloat(stats.winrate) || 0;
+        const barWidth = winrateNum;
+        
+        const avgText = currentPerspective === 'survivor' 
+          ? `平均脱出${avgEscape}人` 
+          : `平均脱落${(4 - parseFloat(avgEscape)).toFixed(1)}人`;
+        
+        const isZero = winrateNum === 0;
+        
         html += `
-          <div class="stat-item">
-            <div class="stat-name">${char}</div>
-            <div class="stat-value">${stats.winrate}%</div>
-            <div class="stat-detail">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分 (${stats.total}試合)</div>
+          <div class="bar-row">
+            <div class="bar-label-wrapper">
+              <div class="bar-label">${char}</div>
+              <div class="bar-sublabel">${avgText}<br>${stats.totalWithDraws}試合</div>
+            </div>
+            <div class="bar-wrapper">
+              ${isZero ? `<div class="bar-value-zero">${stats.winrate}%</div>` : `
+              <div class="bar-visual" style="width: ${barWidth}%;">
+                <div class="bar-value">${stats.winrate}%</div>
+              </div>`}
+            </div>
           </div>
         `;
       });
@@ -899,7 +1347,14 @@
     // マップ別勝率を更新
     function updateMapStats() {
       const container = document.getElementById('map-stats');
-      const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
+      const rankFilter = document.getElementById('map-rank-filter').value;
+      const charFilter = document.getElementById('map-char-filter').value;
+      let perspectiveMatches = getFilteredMatches(rankFilter);
+      
+      // 自キャラでフィルター
+      if (charFilter !== 'all') {
+        perspectiveMatches = perspectiveMatches.filter(m => m.myCharacter === charFilter);
+      }
       
       if (perspectiveMatches.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🗺️</div><p>まだ試合データがありません</p></div>';
@@ -919,20 +1374,37 @@
       const sortedMaps = Object.keys(mapStats).sort((a, b) => {
         const statsA = calculateWinrate(mapStats[a], currentPerspective);
         const statsB = calculateWinrate(mapStats[b], currentPerspective);
-        return parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+        
+        // 勝率で比較
+        const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+        if (winrateDiff !== 0) return winrateDiff;
+        
+        // 勝率が同じなら試合数で比較（引き分け含む）
+        return statsB.totalWithDraws - statsA.totalWithDraws;
       });
       
       let html = `<div class="stats-card">
         <div class="stats-title">マップ別勝率</div>
-        <div class="stats-grid">`;
+        <div class="bar-chart-horizontal">`;
       
       sortedMaps.forEach(map => {
         const stats = calculateWinrate(mapStats[map], currentPerspective);
+        const winrateNum = parseFloat(stats.winrate) || 0;
+        const barWidth = winrateNum;
+        const isZero = winrateNum === 0;
+        
         html += `
-          <div class="stat-item">
-            <div class="stat-name">${map}</div>
-            <div class="stat-value">${stats.winrate}%</div>
-            <div class="stat-detail">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分 (${stats.total}試合)</div>
+          <div class="bar-row">
+            <div class="bar-label-wrapper">
+              <div class="bar-label">${map}</div>
+              <div class="bar-sublabel">${stats.totalWithDraws}試合</div>
+            </div>
+            <div class="bar-wrapper">
+              ${isZero ? `<div class="bar-value-zero">${stats.winrate}%</div>` : `
+              <div class="bar-visual" style="width: ${barWidth}%;">
+                <div class="bar-value">${stats.winrate}%</div>
+              </div>`}
+            </div>
           </div>
         `;
       });
@@ -944,7 +1416,20 @@
     // 対戦相手別勝率を更新
     function updateOpponentStats() {
       const container = document.getElementById('opponent-stats');
-      const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
+      const rankFilter = document.getElementById('opponent-rank-filter').value;
+      const myCharFilter = document.getElementById('my-char-filter').value;
+      const mapFilter = document.getElementById('opponent-map-filter').value;
+      let perspectiveMatches = getFilteredMatches(rankFilter);
+      
+      // 自キャラでフィルター
+      if (myCharFilter !== 'all') {
+        perspectiveMatches = perspectiveMatches.filter(m => m.myCharacter === myCharFilter);
+      }
+      
+      // マップでフィルター
+      if (mapFilter !== 'all') {
+        perspectiveMatches = perspectiveMatches.filter(m => m.map === mapFilter);
+      }
       
       if (perspectiveMatches.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚔️</div><p>まだ試合データがありません</p></div>';
@@ -952,19 +1437,16 @@
       }
       
       if (currentPerspective === 'survivor') {
-        // サバイバー視点: 相手ハンター別と味方編成別
         const hunterStats = {};
         const teammateStats = {};
         
         perspectiveMatches.forEach(match => {
-          // 相手ハンター別
           const hunter = match.opponentHunter;
           if (!hunterStats[hunter]) {
             hunterStats[hunter] = [];
           }
           hunterStats[hunter].push(match);
           
-          // 味方編成別
           match.teammates.forEach(teammate => {
             if (!teammateStats[teammate]) {
               teammateStats[teammate] = [];
@@ -975,52 +1457,81 @@
         
         let html = `<div class="stats-card">
           <div class="stats-title">対戦相手ハンター別勝率</div>
-          <div class="stats-grid">`;
+          <div class="bar-chart-horizontal">`;
         
         Object.keys(hunterStats).sort((a, b) => {
           const statsA = calculateWinrate(hunterStats[a], currentPerspective);
           const statsB = calculateWinrate(hunterStats[b], currentPerspective);
-          return parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+          
+          // 勝率で比較
+          const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+          if (winrateDiff !== 0) return winrateDiff;
+          
+          // 勝率が同じなら試合数で比較
+          return statsB.totalWithDraws - statsA.totalWithDraws;
         }).forEach(hunter => {
           const stats = calculateWinrate(hunterStats[hunter], currentPerspective);
+          const winrateNum = parseFloat(stats.winrate) || 0;
+          const barWidth = winrateNum;
+          const isZero = winrateNum === 0;
+          
           html += `
-            <div class="stat-item">
-              <div class="stat-name">vs ${hunter}</div>
-              <div class="stat-value">${stats.winrate}%</div>
-              <div class="stat-detail">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分 (${stats.total}試合)</div>
+            <div class="bar-row">
+              <div class="bar-label-wrapper">
+                <div class="bar-label">${hunter}</div>
+                <div class="bar-sublabel">${stats.totalWithDraws}試合</div>
+              </div>
+              <div class="bar-wrapper">
+                ${isZero ? `<div class="bar-value-zero">${stats.winrate}%</div>` : `
+                <div class="bar-visual" style="width: ${barWidth}%;">
+                  <div class="bar-value">${stats.winrate}%</div>
+                </div>`}
+              </div>
             </div>
           `;
         });
         
         html += `</div></div>
           <div class="stats-card">
-            <div class="stats-title">味方編成別勝率（グラフ）</div>
-            <div class="chart-container">
-              <div class="bar-chart">`;
+            <div class="stats-title">味方編成別勝率</div>
+            <div class="bar-chart-horizontal">`;
         
-        const sortedTeammates = Object.keys(teammateStats).sort((a, b) => {
-          return teammateStats[b].length - teammateStats[a].length;
-        });
-        
-        sortedTeammates.forEach(teammate => {
+        Object.keys(teammateStats).sort((a, b) => {
+          const statsA = calculateWinrate(teammateStats[a], currentPerspective);
+          const statsB = calculateWinrate(teammateStats[b], currentPerspective);
+          
+          // 勝率で比較
+          const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+          if (winrateDiff !== 0) return winrateDiff;
+          
+          // 勝率が同じなら試合数で比較
+          return statsB.totalWithDraws - statsA.totalWithDraws;
+        }).slice(0, 15).forEach(teammate => {
           const stats = calculateWinrate(teammateStats[teammate], currentPerspective);
           const winrateNum = parseFloat(stats.winrate) || 0;
+          const barWidth = winrateNum;
+          const isZero = winrateNum === 0;
+          
           html += `
-            <div class="bar-item">
-              <div class="bar-label">${teammate}</div>
-              <div class="bar-wrapper">
-                <div class="bar-fill" style="width: ${winrateNum}%">${stats.winrate}%</div>
+            <div class="bar-row">
+              <div class="bar-label-wrapper">
+                <div class="bar-label">${teammate}</div>
+                <div class="bar-sublabel">${stats.totalWithDraws}試合</div>
               </div>
-              <div class="bar-stats">${stats.wins}勝${stats.losses}敗 (${stats.total}試合)</div>
+              <div class="bar-wrapper">
+                ${isZero ? `<div class="bar-value-zero">${stats.winrate}%</div>` : `
+                <div class="bar-visual" style="width: ${barWidth}%;">
+                  <div class="bar-value">${stats.winrate}%</div>
+                </div>`}
+              </div>
             </div>
           `;
         });
         
-        html += '</div></div></div>';
+        html += '</div></div>';
         container.innerHTML = html;
         
       } else {
-        // ハンター視点: 相手サバイバー別
         const survivorStats = {};
         
         perspectiveMatches.forEach(match => {
@@ -1033,29 +1544,42 @@
         });
         
         let html = `<div class="stats-card">
-          <div class="stats-title">対戦相手サバイバー別勝率（グラフ）</div>
-          <div class="chart-container">
-            <div class="bar-chart">`;
+          <div class="stats-title">対戦相手サバイバー別勝率</div>
+          <div class="bar-chart-horizontal">`;
         
-        const sortedSurvivors = Object.keys(survivorStats).sort((a, b) => {
-          return survivorStats[b].length - survivorStats[a].length;
-        });
-        
-        sortedSurvivors.forEach(survivor => {
+        Object.keys(survivorStats).sort((a, b) => {
+          const statsA = calculateWinrate(survivorStats[a], currentPerspective);
+          const statsB = calculateWinrate(survivorStats[b], currentPerspective);
+          
+          // 勝率で比較
+          const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+          if (winrateDiff !== 0) return winrateDiff;
+          
+          // 勝率が同じなら試合数で比較
+          return statsB.totalWithDraws - statsA.totalWithDraws;
+        }).slice(0, 20).forEach(survivor => {
           const stats = calculateWinrate(survivorStats[survivor], currentPerspective);
           const winrateNum = parseFloat(stats.winrate) || 0;
+          const barWidth = winrateNum;
+          const isZero = winrateNum === 0;
+          
           html += `
-            <div class="bar-item">
-              <div class="bar-label">${survivor}</div>
-              <div class="bar-wrapper">
-                <div class="bar-fill" style="width: ${winrateNum}%">${stats.winrate}%</div>
+            <div class="bar-row">
+              <div class="bar-label-wrapper">
+                <div class="bar-label">${survivor}</div>
+                <div class="bar-sublabel">${stats.totalWithDraws}試合</div>
               </div>
-              <div class="bar-stats">${stats.wins}勝${stats.losses}敗 (${stats.total}試合)</div>
+              <div class="bar-wrapper">
+                ${isZero ? `<div class="bar-value-zero">${stats.winrate}%</div>` : `
+                <div class="bar-visual" style="width: ${barWidth}%;">
+                  <div class="bar-value">${stats.winrate}%</div>
+                </div>`}
+              </div>
             </div>
           `;
         });
         
-        html += '</div></div></div>';
+        html += '</div></div>';
         container.innerHTML = html;
       }
     }
@@ -1063,7 +1587,8 @@
     // 試合履歴を更新
     function updateMatchHistory() {
       const container = document.getElementById('match-history');
-      const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective).reverse();
+      const rankFilter = document.getElementById('history-rank-filter').value;
+      const perspectiveMatches = getFilteredMatches(rankFilter).reverse();
       
       if (perspectiveMatches.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>まだ試合データがありません</p></div>';
@@ -1073,18 +1598,18 @@
       let html = '<div class="match-history">';
       
       perspectiveMatches.forEach(match => {
-        const resultClass = match.result === 'survivor_win' ? 'win' : match.result === 'hunter_win' ? 'lose' : 'draw';
         const resultText = match.result === 'survivor_win' ? 'サバイバー勝利' : match.result === 'hunter_win' ? 'ハンター勝利' : '引き分け';
         const isWin = (currentPerspective === 'survivor' && match.result === 'survivor_win') || 
                       (currentPerspective === 'hunter' && match.result === 'hunter_win');
         const displayResultClass = isWin ? 'win' : match.result === 'draw' ? 'draw' : 'lose';
         const escapeInfo = match.escapeCount !== undefined ? ` (脱出${match.escapeCount}人)` : '';
+        const rankInfo = match.rank ? `[${match.rank}] ` : '';
         
         let details = '';
         if (match.perspective === 'survivor') {
-          details = `${match.myCharacter} + ${match.teammates.join(', ')} vs ${match.opponentHunter} @ ${match.map}${escapeInfo}`;
+          details = `${rankInfo}${match.myCharacter} + ${match.teammates.join(', ')} vs ${match.opponentHunter} @ ${match.map}${escapeInfo}`;
         } else {
-          details = `${match.myCharacter} vs ${match.opponentSurvivors.join(', ')} @ ${match.map}${escapeInfo}`;
+          details = `${rankInfo}${match.myCharacter} vs ${match.opponentSurvivors.join(', ')} @ ${match.map}${escapeInfo}`;
         }
         
         html += `
@@ -1114,6 +1639,7 @@
       
       if (match.perspective === 'survivor') {
         currentPerspective = 'survivor';
+        document.getElementById('survivor-rank').value = match.rank || '';
         document.getElementById('my-survivor').value = match.myCharacter;
         document.getElementById('teammate-1').value = match.teammates[0];
         document.getElementById('teammate-2').value = match.teammates[1];
@@ -1127,14 +1653,20 @@
         document.getElementById('survivor-input').style.display = 'block';
         document.getElementById('hunter-input').style.display = 'none';
         
+        updateSurvivorSelects(); // 選択肢を更新
+        
         document.querySelectorAll('#survivor-input .result-button').forEach((btn, index) => {
           btn.classList.remove('selected');
           if (match.escapeCount !== undefined && index === match.escapeCount) {
             btn.classList.add('selected');
           }
         });
+        
+        // 選択肢を更新
+        updateSurvivorSelectOptions();
       } else {
         currentPerspective = 'hunter';
+        document.getElementById('hunter-rank').value = match.rank || '';
         document.getElementById('my-hunter').value = match.myCharacter;
         document.getElementById('opponent-survivor-1').value = match.opponentSurvivors[0];
         document.getElementById('opponent-survivor-2').value = match.opponentSurvivors[1];
@@ -1148,6 +1680,8 @@
         document.getElementById('survivor-input').style.display = 'none';
         document.getElementById('hunter-input').style.display = 'block';
         
+        updateHunterOpponentSelectOptions(); // 選択肢を更新
+        
         document.querySelectorAll('#hunter-input .result-button').forEach((btn, index) => {
           btn.classList.remove('selected');
           if (match.escapeCount !== undefined && index === match.escapeCount) {
@@ -1156,7 +1690,6 @@
         });
       }
       
-      // 試合入力タブに切り替え
       document.querySelectorAll('.main-tab').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.main-tab')[0].classList.add('active');
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -1171,7 +1704,7 @@
       
       matches = matches.filter(m => m.id !== id);
       saveData();
-      updateAllStats();
+      updateAllWithFilters();
       alert('試合データを削除しました');
     }
     
@@ -1181,11 +1714,10 @@
       
       matches = [];
       saveData();
-      updateAllStats();
+      updateAllWithFilters();
       alert('全データをリセットしました');
     }
     
-    // ページ読み込み時に初期化
     window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
