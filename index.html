@@ -3,30 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <!-- SEO最適化 -->
   <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
-  <meta name="description" content="第五人格（Identity V）のランク戦の戦績を簡単に記録・管理できる無料ツール。勝率、キャラ別統計、マップ別データを自動計算。サバイバー/ハンター両対応で完全無料。">
-  <meta name="keywords" content="第五人格,Identity V,戦績,勝率,トラッカー,ランク戦,統計,サバイバー,ハンター">
+  <meta name="description" content="第五人格のランク戦戦績を簡単に記録・管理。勝率、キャラ別・マップ別・相手別の統計を自動計算。サバイバー/ハンター両対応。完全無料で使えるツール。">
   
-  <!-- OGP（SNS共有用） -->
-  <meta property="og:title" content="第五人格トラッカー | 戦績管理・勝率計算">
-  <meta property="og:description" content="第五人格のランク戦戦績を簡単に記録・管理">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://idv-tracker.github.io/">
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="第五人格トラッカー">
-  <meta name="twitter:description" content="戦績管理・勝率計算アプリ">
-  
-  <!-- アイコン設定 -->
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" type="image/png" sizes="180x180" href="icon.png">
-  <link rel="shortcut icon" href="icon.png">
-  
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6919699894432312"
-     crossorigin="anonymous"></script>
-
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EL23B3L2TD"></script>
   <script>
@@ -673,7 +652,7 @@
               <option value="all">全キャラ</option>
             </select>
           </div>
-          <div class="filter-group">
+          <div class="filter-group" id="opponent-filter-group">
             <label class="filter-label">対戦相手フィルター</label>
             <select id="opponent-hunter-filter" onchange="updateAllStats()">
               <option value="all">全て</option>
@@ -743,6 +722,12 @@
       // 保持された値を復元（DOM要素が完全に準備された後）
       loadPersistedValues('survivor');
       loadPersistedValues('hunter');
+      
+      // 初期状態はサバイバー視点なので、対戦相手フィルターを表示
+      const opponentFilterGroup = document.getElementById('opponent-filter-group');
+      if (opponentFilterGroup) {
+        opponentFilterGroup.style.display = 'block';
+      }
       
       updateAllWithFilters(); // フィルターと統計を更新
     }
@@ -1040,9 +1025,21 @@
       if (perspective === 'survivor') {
         document.getElementById('survivor-input').style.display = 'block';
         document.getElementById('hunter-input').style.display = 'none';
+        
+        // サバイバー視点では対戦相手フィルターを表示
+        const opponentFilterGroup = document.getElementById('opponent-filter-group');
+        if (opponentFilterGroup) {
+          opponentFilterGroup.style.display = 'block';
+        }
       } else {
         document.getElementById('survivor-input').style.display = 'none';
         document.getElementById('hunter-input').style.display = 'block';
+        
+        // ハンター視点では対戦相手フィルターを非表示
+        const opponentFilterGroup = document.getElementById('opponent-filter-group');
+        if (opponentFilterGroup) {
+          opponentFilterGroup.style.display = 'none';
+        }
       }
       
       updateAllWithFilters();
@@ -1539,6 +1536,11 @@
       const stats = calculateWinrate(displayMatches, currentPerspective);
       const streak = calculateWinStreak(perspectiveMatches, currentPerspective); // 連勝は全期間で計算
       
+      // 小数点第二位まで計算
+      const filtered = displayMatches.filter(m => m.result !== 'draw');
+      const winrateDecimal = filtered.length > 0 ? 
+        (stats.wins / filtered.length * 100).toFixed(2) : '0.00';
+      
       const isRecent100 = overallStatsMode === 'recent100';
       const buttonText = isRecent100 ? '全期間' : '百戦勝率';
       const statsTitle = isRecent100 ? '百戦勝率' : '総合勝率';
@@ -1551,7 +1553,7 @@
           </button>
         </div>
         <div class="overall-stats-display">
-          <div class="winrate-big">${stats.winrate}%</div>
+          <div class="winrate-big">${winrateDecimal}%</div>
           <div class="record-text">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分け (${stats.totalWithDraws}試合)</div>`;
       
       if (streak >= 2) {
@@ -2352,9 +2354,23 @@
       console.log('Match deleted successfully');
     }
     
-    // 全データをリセット（確認なし）
+    // 全データをリセット（確認ダイアログあり）
     function resetAllData() {
       console.log('resetAllData called');
+      
+      // 第一確認
+      const firstConfirm = confirm('本当に全てのデータをリセットしますか？\nこの操作は取り消せません。');
+      if (!firstConfirm) {
+        console.log('User cancelled at first confirmation');
+        return;
+      }
+      
+      // 第二確認（念押し）
+      const secondConfirm = confirm('最終確認：全データを削除します。\n本当によろしいですか？');
+      if (!secondConfirm) {
+        console.log('User cancelled at second confirmation');
+        return;
+      }
       
       matches = [];
       saveData();
