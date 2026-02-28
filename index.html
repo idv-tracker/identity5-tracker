@@ -3,29 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
-  <meta name="description" content="第五人格（Identity V）のランク戦の戦績を簡単に記録・管理できる無料ツール。勝率、キャラ別統計、マップ別データを自動計算。サバイバー/ハンター両対応で完全無料。">
-  <meta name="keywords" content="第五人格,Identity V,戦績,勝率,トラッカー,ランク戦,統計,サバイバー,ハンター">
-
-  <!-- OGP（SNS共有用） -->
-  <meta property="og:title" content="第五人格トラッカー | 戦績管理・勝率計算">
-  <meta property="og:description" content="第五人格のランク戦戦績を簡単に記録・管理">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://idv-tracker.github.io/">
+  <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
+  <meta name="description" content="第五人格のランク戦戦績を簡単に記録・管理。勝率、キャラ別・マップ別・相手別の統計を自動計算。サバイバー/ハンター両対応。完全無料で使えるツール。">
   
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="第五人格トラッカー">
-  <meta name="twitter:description" content="戦績管理・勝率計算アプリ">
-  
-  <!-- アイコン設定 -->
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" type="image/png" sizes="180x180" href="icon.png">
-  <link rel="shortcut icon" href="icon.png">
-  
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6919699894432312"
-     crossorigin="anonymous"></script>
-
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EL23B3L2TD"></script>
   <script>
@@ -407,8 +387,8 @@
     }
     
     .match-result.win {
-      background: #d4edda;
-      color: #155724;
+      background: #fef3c7;
+      color: #92400e;
     }
     
     .match-result.lose {
@@ -417,8 +397,8 @@
     }
     
     .match-result.draw {
-      background: #fff3cd;
-      color: #856404;
+      background: #e5e7eb;
+      color: #374151;
     }
     
     .match-actions button {
@@ -485,6 +465,7 @@
       <button class="main-tab" onclick="switchTab('map')">マップ別勝率</button>
       <button class="main-tab" onclick="switchTab('opponent')">対戦相手別勝率</button>
       <button class="main-tab" onclick="switchTab('history')">試合履歴</button>
+      <button class="main-tab" onclick="switchTab('settings')">設定</button>
     </div>
     
     <div class="content">
@@ -494,6 +475,11 @@
         
         <div id="survivor-input">
           <button type="button" onclick="event.preventDefault(); event.stopPropagation(); clearAllPersistence('survivor'); return false;" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; margin-bottom: 15px;">全てクリア</button>
+          
+          <div class="form-group">
+            <label class="form-label">日付 <input type="checkbox" id="persist-survivor-date" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
+            <input type="date" id="survivor-date" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+          </div>
           
           <div class="form-group">
             <label class="form-label">段位 <input type="checkbox" id="persist-survivor-rank" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
@@ -560,6 +546,11 @@
         
         <div id="hunter-input" style="display: none;">
           <button type="button" onclick="event.preventDefault(); event.stopPropagation(); clearAllPersistence('hunter'); return false;" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; margin-bottom: 15px;">全てクリア</button>
+          
+          <div class="form-group">
+            <label class="form-label">日付 <input type="checkbox" id="persist-hunter-date" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
+            <input type="date" id="hunter-date" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+          </div>
           
           <div class="form-group">
             <label class="form-label">段位 <input type="checkbox" id="persist-hunter-rank" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
@@ -629,6 +620,15 @@
       <div id="character-tab" class="tab-content">
         <div class="filter-section">
           <div class="filter-group">
+            <label class="filter-label">期間フィルター</label>
+            <select id="character-period-filter" onchange="updateAllStats()">
+              <option value="all">全期間</option>
+              <option value="today">今日</option>
+              <option value="last7days">直近7日</option>
+              <option value="last30days">直近30日</option>
+            </select>
+          </div>
+          <div class="filter-group">
             <label class="filter-label">段位フィルター</label>
             <select id="character-rank-filter" onchange="updateAllStats()">
               <option value="all">全段位</option>
@@ -648,6 +648,15 @@
       <div id="map-tab" class="tab-content">
         <div class="filter-section">
           <div class="filter-group">
+            <label class="filter-label">期間フィルター</label>
+            <select id="map-period-filter" onchange="updateAllStats()">
+              <option value="all">全期間</option>
+              <option value="today">今日</option>
+              <option value="last7days">直近7日</option>
+              <option value="last30days">直近30日</option>
+            </select>
+          </div>
+          <div class="filter-group">
             <label class="filter-label">段位フィルター</label>
             <select id="map-rank-filter" onchange="updateAllStats()">
               <option value="all">全段位</option>
@@ -666,6 +675,15 @@
       <!-- 対戦相手別勝率タブ -->
       <div id="opponent-tab" class="tab-content">
         <div class="filter-section">
+          <div class="filter-group">
+            <label class="filter-label">期間フィルター</label>
+            <select id="opponent-period-filter" onchange="updateAllStats()">
+              <option value="all">全期間</option>
+              <option value="today">今日</option>
+              <option value="last7days">直近7日</option>
+              <option value="last30days">直近30日</option>
+            </select>
+          </div>
           <div class="filter-group">
             <label class="filter-label">段位フィルター</label>
             <select id="opponent-rank-filter" onchange="updateAllStats()">
@@ -698,6 +716,15 @@
       <div id="history-tab" class="tab-content">
         <div class="filter-section">
           <div class="filter-group">
+            <label class="filter-label">期間フィルター</label>
+            <select id="history-period-filter" onchange="updateAllStats()">
+              <option value="all">全期間</option>
+              <option value="today">今日</option>
+              <option value="last7days">直近7日</option>
+              <option value="last30days">直近30日</option>
+            </select>
+          </div>
+          <div class="filter-group">
             <label class="filter-label">段位フィルター</label>
             <select id="history-rank-filter" onchange="updateAllStats()">
               <option value="all">全段位</option>
@@ -706,6 +733,65 @@
         </div>
         <div id="match-history"></div>
         <button type="button" class="reset-button" onclick="event.stopPropagation(); resetAllData(); return false;">全データをリセット</button>
+      </div>
+      
+      <!-- 設定タブ -->
+      <div id="settings-tab" class="tab-content">
+        <div class="stats-card" style="margin-bottom: 20px;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #1f2937;">データのバックアップと復元</h3>
+          <p style="font-size: 13px; color: #6b7280; margin-bottom: 20px; line-height: 1.6;">
+            試合データをバックアップして、機種変更時やブラウザのデータ削除に備えることができます。<br>
+            スマホで入力したデータをPCで分析したり、複数のデバイス間でデータを共有することも可能です。
+          </p>
+          
+          <!-- エクスポート -->
+          <div style="margin-bottom: 30px;">
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 10px; color: #374151;">データをバックアップ</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" onclick="exportToClipboard()" style="flex: 1; min-width: 200px; padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                クリップボードにコピー
+              </button>
+              <button type="button" onclick="exportToFile()" style="flex: 1; min-width: 200px; padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                ファイルでダウンロード
+              </button>
+            </div>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">
+              クリップボードにコピーした場合は、LINEやメモ帳に貼り付けて保存してください。
+            </p>
+          </div>
+          
+          <!-- インポート -->
+          <div>
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 10px; color: #374151;">データを復元</h4>
+            <p style="font-size: 12px; color: #dc2626; margin-bottom: 10px; font-weight: 600;">
+              復元すると現在のデータは完全に上書きされます
+            </p>
+            
+            <!-- テキストエリアで復元 -->
+            <div style="margin-bottom: 15px;">
+              <label style="font-size: 13px; color: #374151; margin-bottom: 5px; display: block;">バックアップデータを貼り付け:</label>
+              <textarea id="import-textarea" placeholder="ここにバックアップデータを貼り付けてください" style="width: 100%; height: 120px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-family: monospace; resize: vertical;"></textarea>
+              <button type="button" onclick="importFromText()" style="width: 100%; padding: 12px 20px; background: #8b5cf6; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px;">
+                テキストから復元
+              </button>
+            </div>
+            
+            <!-- ファイルで復元 -->
+            <div>
+              <label style="font-size: 13px; color: #374151; margin-bottom: 5px; display: block;">またはファイルから復元:</label>
+              <input type="file" id="import-file" accept=".json,.txt" style="display: none;" onchange="importFromFile(event)">
+              <button type="button" onclick="document.getElementById('import-file').click()" style="width: 100%; padding: 12px 20px; background: #6366f1; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                ファイルから復元
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 現在のデータ情報 -->
+        <div class="stats-card">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #1f2937;">現在のデータ情報</h3>
+          <div id="data-info" style="font-size: 13px; color: #374151; line-height: 1.8;"></div>
+        </div>
       </div>
     </div>
     
@@ -724,11 +810,245 @@
     
     const RANKS = ['1段', '2段', '3段', '4段', '5段', '6段', '7段', '最高峰'];
     
+    const SEASONS = [
+      { id: 'S41', label: 'S41', start: '2026-02-05', end: '2026-04-22' }
+      // 新しいシーズンはここに追加
+      // { id: 'S42', label: 'S42', start: '2026-04-23', end: '2026-07-15' }
+    ];
+    
+    // 期間フィルターにシーズンを追加
+    function populatePeriodFilters() {
+      const filterIds = ['character-period-filter', 'map-period-filter', 'opponent-period-filter', 'history-period-filter'];
+      
+      filterIds.forEach(filterId => {
+        const filter = document.getElementById(filterId);
+        if (!filter) return;
+        
+        // シーズンを新しい順に追加
+        const sortedSeasons = [...SEASONS].reverse();
+        sortedSeasons.forEach(season => {
+          const option = document.createElement('option');
+          option.value = season.id;
+          option.textContent = season.label;
+          filter.appendChild(option);
+        });
+      });
+    }
+    
+    // 日付を YYYY-MM-DD 形式に変換
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    // 今日の日付を取得
+    function getToday() {
+      return formatDate(new Date());
+    }
+    
+    // 日付入力フィールドの初期値を設定
+    function initializeDateFields() {
+      const today = getToday();
+      
+      // サバイバー
+      const survivorDate = document.getElementById('survivor-date');
+      if (survivorDate && !survivorDate.value) {
+        survivorDate.value = today;
+      }
+      
+      // ハンター
+      const hunterDate = document.getElementById('hunter-date');
+      if (hunterDate && !hunterDate.value) {
+        hunterDate.value = today;
+      }
+    }
+    
+    // 期間フィルターで試合をフィルタリング
+    function filterByPeriod(matches, periodValue) {
+      if (periodValue === 'all') {
+        return matches;
+      }
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (periodValue === 'today') {
+        const todayStr = formatDate(today);
+        return matches.filter(m => m.date === todayStr);
+      }
+      
+      if (periodValue === 'last7days') {
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // 今日を含む7日間
+        return matches.filter(m => {
+          if (!m.date) return false;
+          const matchDate = new Date(m.date);
+          matchDate.setHours(0, 0, 0, 0);
+          return matchDate >= sevenDaysAgo && matchDate <= today;
+        });
+      }
+      
+      if (periodValue === 'last30days') {
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29); // 今日を含む30日間
+        return matches.filter(m => {
+          if (!m.date) return false;
+          const matchDate = new Date(m.date);
+          matchDate.setHours(0, 0, 0, 0);
+          return matchDate >= thirtyDaysAgo && matchDate <= today;
+        });
+      }
+      
+      // シーズンでフィルター
+      const season = SEASONS.find(s => s.id === periodValue);
+      if (season) {
+        return matches.filter(m => {
+          if (!m.date) return false;
+          return m.date >= season.start && m.date <= season.end;
+        });
+      }
+      
+      return matches;
+    }
+    
     let currentPerspective = 'survivor';
     let selectedEscapeCount = { survivor: null, hunter: null };
     let matches = [];
     let editingMatchId = null;
     let overallStatsMode = 'all'; // 'all' または 'recent100'
+    
+    // キャラクター使用回数を記録（サバイバー/ハンター別）
+    let characterUsageCount = {
+      survivor: {}, // { '医師': 5, '傭兵': 8, ... }
+      hunter: {}    // { '写真家': 10, 'リッパー': 5, ... }
+    };
+    
+    // キャラクター使用回数を増やす
+    function incrementCharacterUsage(perspective, characters) {
+      if (!Array.isArray(characters)) {
+        characters = [characters];
+      }
+      
+      characters.forEach(char => {
+        if (!char) return;
+        
+        if (!characterUsageCount[perspective][char]) {
+          characterUsageCount[perspective][char] = 0;
+        }
+        characterUsageCount[perspective][char]++;
+      });
+      
+      saveCharacterUsageCount();
+    }
+    
+    // キャラクター使用回数を減らす
+    function decrementCharacterUsage(perspective, characters) {
+      if (!Array.isArray(characters)) {
+        characters = [characters];
+      }
+      
+      characters.forEach(char => {
+        if (!char) return;
+        
+        if (characterUsageCount[perspective][char]) {
+          characterUsageCount[perspective][char]--;
+          
+          // 0になったら削除
+          if (characterUsageCount[perspective][char] <= 0) {
+            delete characterUsageCount[perspective][char];
+          }
+        }
+      });
+      
+      saveCharacterUsageCount();
+    }
+    
+    // キャラクター使用回数をソート（使用回数順 → 配列定義順）
+    function sortCharactersByUsage(characters, perspective) {
+      const usageData = characterUsageCount[perspective] || {};
+      
+      return characters.slice().sort((a, b) => {
+        const usageA = usageData[a] || 0;
+        const usageB = usageData[b] || 0;
+        
+        // 使用回数が異なる場合は多い順
+        if (usageA !== usageB) {
+          return usageB - usageA;
+        }
+        
+        // 使用回数が同じ場合は配列定義順を維持
+        return characters.indexOf(a) - characters.indexOf(b);
+      });
+    }
+    
+    // キャラクター使用回数を保存
+    function saveCharacterUsageCount() {
+      localStorage.setItem('identity5_character_usage', JSON.stringify(characterUsageCount));
+    }
+    
+    // キャラクター使用回数を読み込み
+    function loadCharacterUsageCount() {
+      const saved = localStorage.getItem('identity5_character_usage');
+      if (saved) {
+        try {
+          characterUsageCount = JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to load character usage count:', e);
+          characterUsageCount = { survivor: {}, hunter: {} };
+        }
+      }
+    }
+    
+    // キャラクター選択を再構築（使用回数順に更新）
+    function repopulateCharacterSelects() {
+      // サバイバー選択
+      const survivorSelects = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3', 'opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
+      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivor');
+      
+      survivorSelects.forEach(id => {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        
+        // オプションをクリア（最初の空白オプション以外）
+        select.innerHTML = '<option value="">選択してください</option>';
+        
+        // ソート済みのキャラクターを追加
+        sortedSurvivors.forEach(survivor => {
+          const option = document.createElement('option');
+          option.value = survivor;
+          option.textContent = survivor;
+          select.appendChild(option);
+        });
+        
+        // 値を復元
+        select.value = currentValue;
+      });
+      
+      // ハンター選択
+      const hunterSelects = ['my-hunter', 'opponent-hunter'];
+      const sortedHunters = sortCharactersByUsage(HUNTERS, 'hunter');
+      
+      hunterSelects.forEach(id => {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        
+        // オプションをクリア（最初の空白オプション以外）
+        select.innerHTML = '<option value="">選択してください</option>';
+        
+        // ソート済みのキャラクターを追加
+        sortedHunters.forEach(hunter => {
+          const option = document.createElement('option');
+          option.value = hunter;
+          option.textContent = hunter;
+          select.appendChild(option);
+        });
+        
+        // 値を復元
+        select.value = currentValue;
+      });
+    }
     
     // ページネーション用の変数
     let currentPages = {
@@ -741,13 +1061,18 @@
     // 初期化
     function init() {
       populateSelects();
+      populatePeriodFilters(); // 期間フィルターにシーズンを追加
       updateSurvivorSelects(); // サバイバー選択肢の初期化
       updateOpponentSurvivorSelects(); // 相手サバイバー選択肢の初期化
       loadData(); // データを読み込む（保持値の復元は後で）
+      loadCharacterUsageCount(); // 使用回数を読み込む
       
       // 保持された値を復元（DOM要素が完全に準備された後）
       loadPersistedValues('survivor');
       loadPersistedValues('hunter');
+      
+      // 日付フィールドの初期値を設定
+      initializeDateFields();
       
       // 初期状態はサバイバー視点なので、対戦相手フィルターを表示
       const opponentFilterGroup = document.getElementById('opponent-filter-group');
@@ -830,10 +1155,13 @@
     
     // セレクトボックスにオプションを追加
     function populateSelects() {
+      // サバイバー選択（使用回数順にソート）
       const survivorSelects = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3', 'opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
+      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivor');
+      
       survivorSelects.forEach(id => {
         const select = document.getElementById(id);
-        SURVIVORS.forEach(survivor => {
+        sortedSurvivors.forEach(survivor => {
           const option = document.createElement('option');
           option.value = survivor;
           option.textContent = survivor;
@@ -841,10 +1169,13 @@
         });
       });
       
+      // ハンター選択（使用回数順にソート）
       const hunterSelects = ['my-hunter', 'opponent-hunter'];
+      const sortedHunters = sortCharactersByUsage(HUNTERS, 'hunter');
+      
       hunterSelects.forEach(id => {
         const select = document.getElementById(id);
-        HUNTERS.forEach(hunter => {
+        sortedHunters.forEach(hunter => {
           const option = document.createElement('option');
           option.value = hunter;
           option.textContent = hunter;
@@ -906,8 +1237,8 @@
       // 選択肢をクリア（「全て」以外）
       opponentHunterFilter.innerHTML = '<option value="all">全て</option>';
       
-      // 実際に対戦したハンターのみ追加（アルファベット順）
-      const sortedHunters = Array.from(encounteredHunters).sort();
+      // 実際に対戦したハンターのみ追加（配列定義順）
+      const sortedHunters = HUNTERS.filter(hunter => encounteredHunters.has(hunter));
       sortedHunters.forEach(hunter => {
         const option = document.createElement('option');
         option.value = hunter;
@@ -944,8 +1275,8 @@
       // 選択肢をクリア（「全マップ」以外）
       characterMapFilter.innerHTML = '<option value="all">全マップ</option>';
       
-      // 実際に記録したマップのみ追加（アルファベット順）
-      const sortedMaps = Array.from(recordedMaps).sort();
+      // 実際に記録したマップのみ追加（配列定義順）
+      const sortedMaps = MAPS.filter(map => recordedMaps.has(map));
       sortedMaps.forEach(map => {
         const option = document.createElement('option');
         option.value = map;
@@ -1066,7 +1397,9 @@
         filteredMatches = perspectiveMatches.filter(m => m.myCharacter === selectedChar);
       }
       
-      const usedMaps = [...new Set(filteredMatches.map(m => m.map))].sort();
+      // 配列定義順にソート
+      const usedMapsSet = new Set(filteredMatches.map(m => m.map));
+      const usedMaps = MAPS.filter(map => usedMapsSet.has(map));
       
       const mapSelect = document.getElementById('opponent-map-filter');
       const currentValue = mapSelect.value;
@@ -1087,7 +1420,11 @@
     // 自キャラフィルターを更新（使用済みキャラのみ）
     function updateMyCharFilter() {
       const perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
-      const usedChars = [...new Set(perspectiveMatches.map(m => m.myCharacter))].sort();
+      const usedCharsSet = new Set(perspectiveMatches.map(m => m.myCharacter));
+      
+      // 配列定義順にソート（視点に応じて配列を選択）
+      const characterArray = currentPerspective === 'survivor' ? SURVIVORS : HUNTERS;
+      const usedChars = characterArray.filter(char => usedCharsSet.has(char));
       
       // 対戦相手別勝率のフィルター
       const opponentSelect = document.getElementById('my-char-filter');
@@ -1157,6 +1494,11 @@
       });
       document.getElementById(tabName + '-tab').classList.add('active');
       
+      // 設定タブに切り替えた時はデータ情報を更新
+      if (tabName === 'settings') {
+        updateDataInfo();
+      }
+      
       updateAllStats();
     }
     
@@ -1193,6 +1535,7 @@
       };
       
       if (perspective === 'survivor') {
+        const date = document.getElementById('survivor-date').value;
         const rank = document.getElementById('survivor-rank').value;
         const mySurvivor = document.getElementById('my-survivor').value;
         const teammate1 = document.getElementById('teammate-1').value;
@@ -1202,11 +1545,12 @@
         const map = document.getElementById('survivor-map').value;
         const escapeCount = selectedEscapeCount.survivor;
         
-        if (!rank || !mySurvivor || !teammate1 || !teammate2 || !teammate3 || !opponentHunter || !map || escapeCount === null) {
+        if (!date || !rank || !mySurvivor || !teammate1 || !teammate2 || !teammate3 || !opponentHunter || !map || escapeCount === null) {
           alert('全ての項目を入力してください');
           return;
         }
         
+        match.date = date;
         match.rank = rank;
         match.myCharacter = mySurvivor;
         match.teammates = [teammate1, teammate2, teammate3];
@@ -1215,6 +1559,7 @@
         match.escapeCount = escapeCount;
         match.result = getResultFromEscapeCount(escapeCount, perspective);
       } else {
+        const date = document.getElementById('hunter-date').value;
         const rank = document.getElementById('hunter-rank').value;
         const myHunter = document.getElementById('my-hunter').value;
         const opponentSurvivor1 = document.getElementById('opponent-survivor-1').value;
@@ -1224,11 +1569,12 @@
         const map = document.getElementById('hunter-map').value;
         const escapeCount = selectedEscapeCount.hunter;
         
-        if (!rank || !myHunter || !opponentSurvivor1 || !opponentSurvivor2 || !opponentSurvivor3 || !opponentSurvivor4 || !map || escapeCount === null) {
+        if (!date || !rank || !myHunter || !opponentSurvivor1 || !opponentSurvivor2 || !opponentSurvivor3 || !opponentSurvivor4 || !map || escapeCount === null) {
           alert('全ての項目を入力してください');
           return;
         }
         
+        match.date = date;
         match.rank = rank;
         match.myCharacter = myHunter;
         match.opponentSurvivors = [opponentSurvivor1, opponentSurvivor2, opponentSurvivor3, opponentSurvivor4];
@@ -1238,8 +1584,37 @@
       }
       
       if (editingMatchId) {
+        // 編集モードの場合、古いデータの使用回数を減らす
+        const oldMatch = matches.find(m => m.id === editingMatchId);
+        if (oldMatch) {
+          if (oldMatch.perspective === 'survivor') {
+            // サバイバー視点：自分、味方3人の使用回数を減らす
+            decrementCharacterUsage('survivor', [oldMatch.myCharacter, ...oldMatch.teammates]);
+            // 対戦相手ハンターの使用回数を減らす
+            decrementCharacterUsage('hunter', oldMatch.opponentHunter);
+          } else {
+            // ハンター視点：自分の使用回数を減らす
+            decrementCharacterUsage('hunter', oldMatch.myCharacter);
+            // 対戦相手サバイバー4人の使用回数を減らす
+            decrementCharacterUsage('survivor', oldMatch.opponentSurvivors);
+          }
+        }
+        
         matches = matches.filter(m => m.id !== editingMatchId);
         editingMatchId = null;
+      }
+      
+      // 新しいデータの使用回数を増やす
+      if (perspective === 'survivor') {
+        // サバイバー視点：自分、味方3人の使用回数を増やす
+        incrementCharacterUsage('survivor', [match.myCharacter, ...match.teammates]);
+        // 対戦相手ハンターの使用回数を増やす
+        incrementCharacterUsage('hunter', match.opponentHunter);
+      } else {
+        // ハンター視点：自分の使用回数を増やす
+        incrementCharacterUsage('hunter', match.myCharacter);
+        // 対戦相手サバイバー4人の使用回数を増やす
+        incrementCharacterUsage('survivor', match.opponentSurvivors);
       }
       
       matches.push(match);
@@ -1256,6 +1631,9 @@
       // 自キャラ別勝率のマップフィルターを更新
       updateCharacterMapFilter();
       
+      // セレクトボックスを再構築（使用回数順に更新）
+      repopulateCharacterSelects();
+      
       alert('試合を記録しました！');
       updateAllWithFilters();
     }
@@ -1264,6 +1642,7 @@
     function resetForm(perspective) {
       if (perspective === 'survivor') {
         const fields = [
+          { id: 'survivor-date', persistKey: 'persist-survivor-date', isDate: true },
           { id: 'survivor-rank', persistKey: 'persist-survivor-rank' },
           { id: 'my-survivor', persistKey: 'persist-my-survivor' },
           { id: 'teammate-1', persistKey: 'persist-teammate-1' },
@@ -1275,12 +1654,16 @@
         
         fields.forEach(field => {
           const persistCheckbox = document.getElementById(field.persistKey);
-          const select = document.getElementById(field.id);
+          const element = document.getElementById(field.id);
           
           // 保持チェックボックスがオフの場合のみクリア
           if (!persistCheckbox || !persistCheckbox.checked) {
-            if (select) {
-              select.value = '';
+            if (element) {
+              if (field.isDate) {
+                element.value = getToday(); // 日付は今日に戻す
+              } else {
+                element.value = '';
+              }
             }
           }
         });
@@ -1292,6 +1675,7 @@
         updateSurvivorSelectOptions(); // 選択肢を更新
       } else {
         const fields = [
+          { id: 'hunter-date', persistKey: 'persist-hunter-date', isDate: true },
           { id: 'hunter-rank', persistKey: 'persist-hunter-rank' },
           { id: 'my-hunter', persistKey: 'persist-my-hunter' },
           { id: 'opponent-survivor-1', persistKey: 'persist-opponent-survivor-1' },
@@ -1303,12 +1687,16 @@
         
         fields.forEach(field => {
           const persistCheckbox = document.getElementById(field.persistKey);
-          const select = document.getElementById(field.id);
+          const element = document.getElementById(field.id);
           
           // 保持チェックボックスがオフの場合のみクリア
           if (!persistCheckbox || !persistCheckbox.checked) {
-            if (select) {
-              select.value = '';
+            if (element) {
+              if (field.isDate) {
+                element.value = getToday(); // 日付は今日に戻す
+              } else {
+                element.value = '';
+              }
             }
           }
         });
@@ -1331,6 +1719,27 @@
       const saved = localStorage.getItem('identity5_matches');
       if (saved) {
         matches = JSON.parse(saved);
+        
+        // 既存データに日付がない場合、timestampから生成（マイグレーション）
+        let migrated = false;
+        matches = matches.map(match => {
+          if (!match.date && match.timestamp) {
+            const dateObj = new Date(match.timestamp);
+            match.date = formatDate(dateObj);
+            migrated = true;
+          } else if (!match.date && match.id) {
+            // timestampもない場合はidから生成
+            const dateObj = new Date(match.id);
+            match.date = formatDate(dateObj);
+            migrated = true;
+          }
+          return match;
+        });
+        
+        // マイグレーションした場合は保存
+        if (migrated) {
+          saveData();
+        }
       }
     }
     
@@ -1339,6 +1748,7 @@
       try {
         if (perspective === 'survivor') {
           const fields = [
+            { id: 'survivor-date', persistKey: 'persist-survivor-date', isDate: true },
             { id: 'survivor-rank', persistKey: 'persist-survivor-rank' },
             { id: 'my-survivor', persistKey: 'persist-my-survivor' },
             { id: 'teammate-1', persistKey: 'persist-teammate-1' },
@@ -1350,7 +1760,7 @@
           
           fields.forEach(field => {
             const persistCheckbox = document.getElementById(field.persistKey);
-            const select = document.getElementById(field.id);
+            const element = document.getElementById(field.id);
             const savedValue = localStorage.getItem(`persist_value_${field.id}`);
             const isChecked = localStorage.getItem(`persist_checkbox_${field.persistKey}`) === 'true';
             
@@ -1358,12 +1768,16 @@
               persistCheckbox.checked = true;
             }
             
-            if (savedValue && select) {
-              select.value = savedValue;
+            if (savedValue && element) {
+              element.value = savedValue;
+            } else if (field.isDate && element && !element.value) {
+              // 日付フィールドで保持していない場合は今日の日付
+              element.value = getToday();
             }
           });
         } else {
           const fields = [
+            { id: 'hunter-date', persistKey: 'persist-hunter-date', isDate: true },
             { id: 'hunter-rank', persistKey: 'persist-hunter-rank' },
             { id: 'my-hunter', persistKey: 'persist-my-hunter' },
             { id: 'opponent-survivor-1', persistKey: 'persist-opponent-survivor-1' },
@@ -1375,7 +1789,7 @@
           
           fields.forEach(field => {
             const persistCheckbox = document.getElementById(field.persistKey);
-            const select = document.getElementById(field.id);
+            const element = document.getElementById(field.id);
             const savedValue = localStorage.getItem(`persist_value_${field.id}`);
             const isChecked = localStorage.getItem(`persist_checkbox_${field.persistKey}`) === 'true';
             
@@ -1383,8 +1797,11 @@
               persistCheckbox.checked = true;
             }
             
-            if (savedValue && select) {
-              select.value = savedValue;
+            if (savedValue && element) {
+              element.value = savedValue;
+            } else if (field.isDate && element && !element.value) {
+              // 日付フィールドで保持していない場合は今日の日付
+              element.value = getToday();
             }
           });
         }
@@ -1398,6 +1815,7 @@
       try {
         if (perspective === 'survivor') {
           const fields = [
+            { id: 'survivor-date', persistKey: 'persist-survivor-date' },
             { id: 'survivor-rank', persistKey: 'persist-survivor-rank' },
             { id: 'my-survivor', persistKey: 'persist-my-survivor' },
             { id: 'teammate-1', persistKey: 'persist-teammate-1' },
@@ -1409,12 +1827,12 @@
           
           fields.forEach(field => {
             const persistCheckbox = document.getElementById(field.persistKey);
-            const select = document.getElementById(field.id);
+            const element = document.getElementById(field.id);
             
             if (persistCheckbox && persistCheckbox.checked) {
               localStorage.setItem(`persist_checkbox_${field.persistKey}`, 'true');
-              if (select) {
-                localStorage.setItem(`persist_value_${field.id}`, select.value);
+              if (element) {
+                localStorage.setItem(`persist_value_${field.id}`, element.value);
               }
             } else {
               localStorage.removeItem(`persist_checkbox_${field.persistKey}`);
@@ -1423,6 +1841,7 @@
           });
         } else {
           const fields = [
+            { id: 'hunter-date', persistKey: 'persist-hunter-date' },
             { id: 'hunter-rank', persistKey: 'persist-hunter-rank' },
             { id: 'my-hunter', persistKey: 'persist-my-hunter' },
             { id: 'opponent-survivor-1', persistKey: 'persist-opponent-survivor-1' },
@@ -1434,12 +1853,12 @@
           
           fields.forEach(field => {
             const persistCheckbox = document.getElementById(field.persistKey);
-            const select = document.getElementById(field.id);
+            const element = document.getElementById(field.id);
             
             if (persistCheckbox && persistCheckbox.checked) {
               localStorage.setItem(`persist_checkbox_${field.persistKey}`, 'true');
-              if (select) {
-                localStorage.setItem(`persist_value_${field.id}`, select.value);
+              if (element) {
+                localStorage.setItem(`persist_value_${field.id}`, element.value);
               }
             } else {
               localStorage.removeItem(`persist_checkbox_${field.persistKey}`);
@@ -1461,6 +1880,7 @@
         
         if (perspective === 'survivor') {
           const fields = [
+            { id: 'survivor-date', persistKey: 'persist-survivor-date', isDate: true },
             { id: 'survivor-rank', persistKey: 'persist-survivor-rank' },
             { id: 'my-survivor', persistKey: 'persist-my-survivor' },
             { id: 'teammate-1', persistKey: 'persist-teammate-1' },
@@ -1472,16 +1892,20 @@
           
           fields.forEach(field => {
             const persistCheckbox = document.getElementById(field.persistKey);
-            const select = document.getElementById(field.id);
+            const element = document.getElementById(field.id);
             
-            console.log(`Processing field: ${field.id}, checkbox found: ${!!persistCheckbox}, select found: ${!!select}`);
+            console.log(`Processing field: ${field.id}, checkbox found: ${!!persistCheckbox}, element found: ${!!element}`);
             
             if (persistCheckbox) {
               persistCheckbox.checked = false;
             }
             
-            if (select) {
-              select.value = '';
+            if (element) {
+              if (field.isDate) {
+                element.value = getToday(); // 日付は今日に戻す
+              } else {
+                element.value = '';
+              }
             }
             
             localStorage.removeItem(`persist_checkbox_${field.persistKey}`);
@@ -1494,6 +1918,7 @@
           console.log('Survivor persistence cleared successfully');
         } else {
           const fields = [
+            { id: 'hunter-date', persistKey: 'persist-hunter-date', isDate: true },
             { id: 'hunter-rank', persistKey: 'persist-hunter-rank' },
             { id: 'my-hunter', persistKey: 'persist-my-hunter' },
             { id: 'opponent-survivor-1', persistKey: 'persist-opponent-survivor-1' },
@@ -1505,16 +1930,20 @@
           
           fields.forEach(field => {
             const persistCheckbox = document.getElementById(field.persistKey);
-            const select = document.getElementById(field.id);
+            const element = document.getElementById(field.id);
             
-            console.log(`Processing field: ${field.id}, checkbox found: ${!!persistCheckbox}, select found: ${!!select}`);
+            console.log(`Processing field: ${field.id}, checkbox found: ${!!persistCheckbox}, element found: ${!!element}`);
             
             if (persistCheckbox) {
               persistCheckbox.checked = false;
             }
             
-            if (select) {
-              select.value = '';
+            if (element) {
+              if (field.isDate) {
+                element.value = getToday(); // 日付は今日に戻す
+              } else {
+                element.value = '';
+              }
             }
             
             localStorage.removeItem(`persist_checkbox_${field.persistKey}`);
@@ -1652,6 +2081,9 @@
       const buttonText = isRecent100 ? '全期間' : '百戦勝率';
       const statsTitle = isRecent100 ? '百戦勝率' : '総合勝率';
       
+      // 百戦勝率モードでは試合数を表示しない
+      const matchCountText = isRecent100 ? '' : ` (${stats.totalWithDraws}試合)`;
+      
       let html = `<div class="stats-card" style="margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div style="font-size: 14px; font-weight: 600; color: #666;">${statsTitle}</div>
@@ -1661,7 +2093,7 @@
         </div>
         <div class="overall-stats-display">
           <div class="winrate-big">${winrateDecimal}%</div>
-          <div class="record-text">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分け (${stats.totalWithDraws}試合)</div>`;
+          <div class="record-text">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分${matchCountText}</div>`;
       
       if (streak >= 2) {
         html += `<div class="streak-badge"><span class="streak-icon">🔥</span>${streak}連勝中！</div>`;
@@ -1934,9 +2366,13 @@
     // 自キャラ別勝率を更新
     function updateCharacterStats() {
       const container = document.getElementById('character-stats');
+      const periodFilter = document.getElementById('character-period-filter').value;
       const rankFilter = document.getElementById('character-rank-filter').value;
       const mapFilter = document.getElementById('character-map-filter').value;
       let perspectiveMatches = getFilteredMatches(rankFilter);
+      
+      // 期間でフィルター
+      perspectiveMatches = filterByPeriod(perspectiveMatches, periodFilter);
       
       // マップでフィルター
       if (mapFilter !== 'all') {
@@ -1971,23 +2407,7 @@
         const winrateDiff = winrateB - winrateA;
         if (winrateDiff !== 0) return winrateDiff;
         
-        // 勝率が同じなら平均脱出/脱落人数で比較
-        const avgEscapeA = parseFloat(calculateAverageEscapeCount(characterStats[a], currentPerspective));
-        const avgEscapeB = parseFloat(calculateAverageEscapeCount(characterStats[b], currentPerspective));
-        
-        if (currentPerspective === 'survivor') {
-          // サバイバー: 平均脱出人数が多い順
-          const avgDiff = avgEscapeB - avgEscapeA;
-          if (Math.abs(avgDiff) > 0.01) return avgDiff;
-        } else {
-          // ハンター: 平均脱落人数が多い順（脱落 = 4 - 脱出）
-          const avgFallA = 4 - avgEscapeA;
-          const avgFallB = 4 - avgEscapeB;
-          const avgDiff = avgFallB - avgFallA;
-          if (Math.abs(avgDiff) > 0.01) return avgDiff;
-        }
-        
-        // それでも同じなら試合数で比較（引き分け含む）
+        // 勝率が同じなら試合数で比較（引き分け含む）
         return statsB.totalWithDraws - statsA.totalWithDraws;
       });
       
@@ -2035,9 +2455,13 @@
     // マップ別勝率を更新
     function updateMapStats() {
       const container = document.getElementById('map-stats');
+      const periodFilter = document.getElementById('map-period-filter').value;
       const rankFilter = document.getElementById('map-rank-filter').value;
       const charFilter = document.getElementById('map-char-filter').value;
       let perspectiveMatches = getFilteredMatches(rankFilter);
+      
+      // 期間でフィルター
+      perspectiveMatches = filterByPeriod(perspectiveMatches, periodFilter);
       
       // 自キャラでフィルター
       if (charFilter !== 'all') {
@@ -2112,11 +2536,15 @@
     // 対戦相手別勝率を更新
     function updateOpponentStats() {
       const container = document.getElementById('opponent-stats');
+      const periodFilter = document.getElementById('opponent-period-filter').value;
       const rankFilter = document.getElementById('opponent-rank-filter').value;
       const myCharFilter = document.getElementById('my-char-filter').value;
       const opponentHunterFilter = document.getElementById('opponent-hunter-filter') ? document.getElementById('opponent-hunter-filter').value : 'all';
       const mapFilter = document.getElementById('opponent-map-filter').value;
       let perspectiveMatches = getFilteredMatches(rankFilter);
+      
+      // 期間でフィルター
+      perspectiveMatches = filterByPeriod(perspectiveMatches, periodFilter);
       
       // 自キャラでフィルター
       if (myCharFilter !== 'all') {
@@ -2333,8 +2761,14 @@
     // 試合履歴を更新
     function updateMatchHistory() {
       const container = document.getElementById('match-history');
+      const periodFilter = document.getElementById('history-period-filter').value;
       const rankFilter = document.getElementById('history-rank-filter').value;
-      const perspectiveMatches = getFilteredMatches(rankFilter).reverse();
+      let perspectiveMatches = getFilteredMatches(rankFilter);
+      
+      // 期間でフィルター
+      perspectiveMatches = filterByPeriod(perspectiveMatches, periodFilter);
+      
+      perspectiveMatches = perspectiveMatches.reverse();
       
       if (perspectiveMatches.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>まだ試合データがありません</p></div>';
@@ -2397,6 +2831,7 @@
       
       if (match.perspective === 'survivor') {
         currentPerspective = 'survivor';
+        document.getElementById('survivor-date').value = match.date || getToday();
         document.getElementById('survivor-rank').value = match.rank || '';
         document.getElementById('my-survivor').value = match.myCharacter;
         document.getElementById('teammate-1').value = match.teammates[0];
@@ -2424,6 +2859,7 @@
         updateSurvivorSelectOptions();
       } else {
         currentPerspective = 'hunter';
+        document.getElementById('hunter-date').value = match.date || getToday();
         document.getElementById('hunter-rank').value = match.rank || '';
         document.getElementById('my-hunter').value = match.myCharacter;
         document.getElementById('opponent-survivor-1').value = match.opponentSurvivors[0];
@@ -2460,6 +2896,22 @@
     function deleteMatch(id) {
       console.log('deleteMatch called with id:', id);
       
+      // 削除前に使用回数を減らす
+      const match = matches.find(m => m.id === id);
+      if (match) {
+        if (match.perspective === 'survivor') {
+          // サバイバー視点：自分、味方3人の使用回数を減らす
+          decrementCharacterUsage('survivor', [match.myCharacter, ...match.teammates]);
+          // 対戦相手ハンターの使用回数を減らす
+          decrementCharacterUsage('hunter', match.opponentHunter);
+        } else {
+          // ハンター視点：自分の使用回数を減らす
+          decrementCharacterUsage('hunter', match.myCharacter);
+          // 対戦相手サバイバー4人の使用回数を減らす
+          decrementCharacterUsage('survivor', match.opponentSurvivors);
+        }
+      }
+      
       matches = matches.filter(m => m.id !== id);
       saveData();
       
@@ -2468,6 +2920,9 @@
       
       // 自キャラ別勝率のマップフィルターを更新
       updateCharacterMapFilter();
+      
+      // セレクトボックスを再構築（使用回数順に更新）
+      repopulateCharacterSelects();
       
       updateAllWithFilters();
       
@@ -2495,15 +2950,207 @@
       matches = [];
       saveData();
       
+      // キャラクター使用回数もリセット
+      characterUsageCount = { survivor: {}, hunter: {} };
+      saveCharacterUsageCount();
+      
       // 対戦相手ハンターフィルターを更新
       updateOpponentHunterFilter();
       
       // 自キャラ別勝率のマップフィルターを更新
       updateCharacterMapFilter();
       
+      // セレクトボックスを再構築（使用回数順に更新）
+      repopulateCharacterSelects();
+      
       updateAllWithFilters();
       
       console.log('All data reset successfully');
+    }
+    
+    // データのエクスポート/インポート機能
+    
+    // 現在のデータ情報を更新
+    function updateDataInfo() {
+      const dataInfo = document.getElementById('data-info');
+      if (!dataInfo) return;
+      
+      const survivorMatches = matches.filter(m => m.perspective === 'survivor').length;
+      const hunterMatches = matches.filter(m => m.perspective === 'hunter').length;
+      const totalMatches = matches.length;
+      
+      const survivorCharsCount = Object.keys(characterUsageCount.survivor || {}).length;
+      const hunterCharsCount = Object.keys(characterUsageCount.hunter || {}).length;
+      
+      dataInfo.innerHTML = `
+        <div><strong>総試合数:</strong> ${totalMatches}試合</div>
+        <div style="margin-left: 20px;">└ サバイバー視点: ${survivorMatches}試合</div>
+        <div style="margin-left: 20px;">└ ハンター視点: ${hunterMatches}試合</div>
+        <div style="margin-top: 10px;"><strong>使用キャラクター数:</strong></div>
+        <div style="margin-left: 20px;">└ サバイバー: ${survivorCharsCount}種類</div>
+        <div style="margin-left: 20px;">└ ハンター: ${hunterCharsCount}種類</div>
+      `;
+    }
+    
+    // バックアップデータを作成
+    function createBackupData() {
+      return {
+        version: '1.0.0',
+        exportDate: new Date().toISOString(),
+        matches: matches,
+        characterUsageCount: characterUsageCount
+      };
+    }
+    
+    // クリップボードにエクスポート
+    async function exportToClipboard() {
+      try {
+        const data = createBackupData();
+        const jsonString = JSON.stringify(data, null, 2);
+        
+        await navigator.clipboard.writeText(jsonString);
+        alert('データをクリップボードにコピーしました！\n\nLINEやメモ帳に貼り付けて保存してください。');
+      } catch (error) {
+        console.error('Export to clipboard failed:', error);
+        alert('クリップボードへのコピーに失敗しました。\n\nファイルダウンロードをお試しください。');
+      }
+    }
+    
+    // ファイルとしてエクスポート
+    function exportToFile() {
+      try {
+        const data = createBackupData();
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        a.download = `identity5_backup_${timestamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert('バックアップファイルをダウンロードしました！');
+      } catch (error) {
+        console.error('Export to file failed:', error);
+        alert('ファイルのダウンロードに失敗しました。');
+      }
+    }
+    
+    // データを検証
+    function validateBackupData(data) {
+      if (!data || typeof data !== 'object') {
+        return { valid: false, error: 'データ形式が正しくありません' };
+      }
+      
+      if (!data.matches || !Array.isArray(data.matches)) {
+        return { valid: false, error: '試合データが見つかりません' };
+      }
+      
+      if (!data.characterUsageCount || typeof data.characterUsageCount !== 'object') {
+        return { valid: false, error: 'キャラクター使用回数データが見つかりません' };
+      }
+      
+      return { valid: true };
+    }
+    
+    // データをインポート
+    function importData(data) {
+      const validation = validateBackupData(data);
+      if (!validation.valid) {
+        alert(`データの復元に失敗しました\n\n${validation.error}`);
+        return false;
+      }
+      
+      const currentMatchCount = matches.length;
+      const newMatchCount = data.matches.length;
+      
+      const confirmed = confirm(
+        `データを復元しますか？\n\n` +
+        `現在のデータ: ${currentMatchCount}試合\n` +
+        `復元するデータ: ${newMatchCount}試合\n\n` +
+        `現在のデータは完全に上書きされます。\n` +
+        `本当によろしいですか？`
+      );
+      
+      if (!confirmed) {
+        return false;
+      }
+      
+      try {
+        // データを復元
+        matches = data.matches;
+        characterUsageCount = data.characterUsageCount || { survivor: {}, hunter: {} };
+        
+        // localStorageに保存
+        saveData();
+        saveCharacterUsageCount();
+        
+        // UIを更新
+        updateDataInfo();
+        repopulateCharacterSelects();
+        updateOpponentHunterFilter();
+        updateCharacterMapFilter();
+        updateAllWithFilters();
+        
+        alert(`データを復元しました！\n\n${newMatchCount}試合のデータを読み込みました。`);
+        return true;
+      } catch (error) {
+        console.error('Import failed:', error);
+        alert(`データの復元中にエラーが発生しました\n\n${error.message}`);
+        return false;
+      }
+    }
+    
+    // テキストからインポート
+    function importFromText() {
+      const textarea = document.getElementById('import-textarea');
+      const text = textarea.value.trim();
+      
+      if (!text) {
+        alert('バックアップデータを貼り付けてください');
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(text);
+        if (importData(data)) {
+          textarea.value = '';
+        }
+      } catch (error) {
+        console.error('JSON parse error:', error);
+        alert('データ形式が正しくありません\n\n正しいバックアップデータを貼り付けてください。');
+      }
+    }
+    
+    // ファイルからインポート
+    function importFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          importData(data);
+        } catch (error) {
+          console.error('JSON parse error:', error);
+          alert('ファイルの読み込みに失敗しました\n\nファイル形式が正しくありません。');
+        }
+        
+        // ファイル選択をリセット
+        event.target.value = '';
+      };
+      
+      reader.onerror = function() {
+        alert('ファイルの読み込みに失敗しました');
+        event.target.value = '';
+      };
+      
+      reader.readAsText(file);
     }
     
     window.addEventListener('DOMContentLoaded', init);
