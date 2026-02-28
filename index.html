@@ -3,30 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
-  <meta name="description" content="第五人格（Identity V）のランク戦の戦績を簡単に記録・管理できる無料ツール。勝率、キャラ別統計、マップ別データを自動計算。サバイバー/ハンター両対応で完全無料。">
-  <meta name="keywords" content="第五人格,Identity V,戦績,勝率,トラッカー,ランク戦,統計,サバイバー,ハンター">
-
-  <!-- OGP（SNS共有用） -->
-  <meta property="og:title" content="第五人格トラッカー | 戦績管理・勝率計算">
-  <meta property="og:description" content="第五人格のランク戦戦績を簡単に記録・管理">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://idv-tracker.github.io/">
+  <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
+  <meta name="description" content="第五人格のランク戦戦績を簡単に記録・管理。勝率、キャラ別・マップ別・相手別の統計を自動計算。サバイバー/ハンター両対応。完全無料で使えるツール。">
   
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="第五人格トラッカー">
-  <meta name="twitter:description" content="戦績管理・勝率計算アプリ">
-  
-  <!-- アイコン設定 -->
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" type="image/png" sizes="180x180" href="icon.png">
-  <link rel="shortcut icon" href="icon.png">
-  
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6919699894432312"
-     crossorigin="anonymous"></script>
-
-
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EL23B3L2TD"></script>
   <script>
@@ -94,12 +73,13 @@
       font-size: 16px;
       font-weight: 600;
       transition: all 0.3s;
+      color: #6b7280; /* 非アクティブは灰色 */
     }
     
     .perspective-tab.active {
       background: white;
-      color: #0f3460;
-      border-bottom: 3px solid #0f3460;
+      color: #3b82f6; /* アクティブは明るい青 */
+      border-bottom: 3px solid #3b82f6;
     }
     
     .perspective-tab:hover {
@@ -111,6 +91,23 @@
       background: #f8f9fa;
       border-bottom: 1px solid #dee2e6;
       overflow-x: auto;
+      position: relative; /* グラデーション用 */
+    }
+    
+    /* スクロール可能であることを示すグラデーション（動的に表示/非表示） */
+    .main-tabs.has-scroll::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 40px;
+      background: linear-gradient(to right, 
+        rgba(248, 249, 250, 0), 
+        rgba(248, 249, 250, 1)
+      );
+      pointer-events: none;
+      z-index: 1;
     }
     
     .main-tab {
@@ -121,12 +118,13 @@
       font-size: 14px;
       white-space: nowrap;
       transition: all 0.3s;
+      color: #6b7280; /* 非アクティブは灰色 */
     }
     
     .main-tab.active {
       background: white;
-      color: #0f3460;
-      border-bottom: 2px solid #0f3460;
+      color: #3b82f6; /* アクティブは明るい青 */
+      border-bottom: 2px solid #3b82f6;
     }
     
     .main-tab:hover {
@@ -163,6 +161,12 @@
       border-radius: 6px;
       font-size: 14px;
       background: white;
+      color: #3b82f6; /* 選択済みは明るい青（日付や脱出人数ボタンと同じ） */
+    }
+    
+    /* 未選択状態（プレースホルダー）のスタイル */
+    select.placeholder {
+      color: #9ca3af; /* 薄いグレー */
     }
     
     select:focus {
@@ -466,7 +470,18 @@
       font-size: 48px;
       margin-bottom: 10px;
     }
+    
+    /* レスポンシブ対応：スマホでは2列に */
+    @media (max-width: 480px) {
+      .teammate-grid,
+      .opponent-survivor-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
   </style>
+  
+  <!-- Chart.js CDN (安定版v3) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -482,6 +497,7 @@
     
     <div class="main-tabs">
       <button class="main-tab active" onclick="switchTab('input')">試合入力</button>
+      <button class="main-tab" onclick="switchTab('overall')">総合勝率</button>
       <button class="main-tab" onclick="switchTab('character')">自キャラ別勝率</button>
       <button class="main-tab" onclick="switchTab('map')">マップ別勝率</button>
       <button class="main-tab" onclick="switchTab('opponent')">対戦相手別勝率</button>
@@ -492,10 +508,8 @@
     <div class="content">
       <!-- 試合入力タブ -->
       <div id="input-tab" class="tab-content active">
-        <div id="overall-stats-inline"></div>
-        
         <div id="survivor-input">
-          <button type="button" onclick="event.preventDefault(); event.stopPropagation(); clearAllPersistence('survivor'); return false;" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; margin-bottom: 15px;">全てクリア</button>
+          <button type="button" onclick="event.preventDefault(); event.stopPropagation(); clearAllPersistence('survivor'); return false;" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; margin-bottom: 15px;">保持を全て解除</button>
           
           <div class="form-group">
             <label class="form-label">日付 <input type="checkbox" id="persist-survivor-date" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
@@ -517,24 +531,33 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">味方サバイバー1 <input type="checkbox" id="persist-teammate-1" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
-            <select id="teammate-1" onchange="updateSurvivorSelects()">
-              <option value="">選択してください</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">味方サバイバー2 <input type="checkbox" id="persist-teammate-2" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
-            <select id="teammate-2" onchange="updateSurvivorSelects()">
-              <option value="">選択してください</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">味方サバイバー3 <input type="checkbox" id="persist-teammate-3" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
-            <select id="teammate-3" onchange="updateSurvivorSelects()">
-              <option value="">選択してください</option>
-            </select>
+            <label class="form-label">味方サバイバー</label>
+            <div class="teammate-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+              <div>
+                <select id="teammate-1" onchange="updateSurvivorSelects()">
+                  <option value="">選択してください</option>
+                </select>
+                <label style="display: block; margin-top: 5px; font-size: 12px;">
+                  <input type="checkbox" id="persist-teammate-1" style="margin-right: 4px;">保持
+                </label>
+              </div>
+              <div>
+                <select id="teammate-2" onchange="updateSurvivorSelects()">
+                  <option value="">選択してください</option>
+                </select>
+                <label style="display: block; margin-top: 5px; font-size: 12px;">
+                  <input type="checkbox" id="persist-teammate-2" style="margin-right: 4px;">保持
+                </label>
+              </div>
+              <div>
+                <select id="teammate-3" onchange="updateSurvivorSelects()">
+                  <option value="">選択してください</option>
+                </select>
+                <label style="display: block; margin-top: 5px; font-size: 12px;">
+                  <input type="checkbox" id="persist-teammate-3" style="margin-right: 4px;">保持
+                </label>
+              </div>
+            </div>
           </div>
           
           <div class="form-group">
@@ -566,7 +589,7 @@
         </div>
         
         <div id="hunter-input" style="display: none;">
-          <button type="button" onclick="event.preventDefault(); event.stopPropagation(); clearAllPersistence('hunter'); return false;" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; margin-bottom: 15px;">全てクリア</button>
+          <button type="button" onclick="event.preventDefault(); event.stopPropagation(); clearAllPersistence('hunter'); return false;" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; margin-bottom: 15px;">保持を全て解除</button>
           
           <div class="form-group">
             <label class="form-label">日付 <input type="checkbox" id="persist-hunter-date" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
@@ -588,31 +611,41 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">相手サバイバー1 <input type="checkbox" id="persist-opponent-survivor-1" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
-            <select id="opponent-survivor-1" onchange="updateOpponentSurvivorSelects()">
-              <option value="">選択してください</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">相手サバイバー2 <input type="checkbox" id="persist-opponent-survivor-2" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
-            <select id="opponent-survivor-2" onchange="updateOpponentSurvivorSelects()">
-              <option value="">選択してください</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">相手サバイバー3 <input type="checkbox" id="persist-opponent-survivor-3" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
-            <select id="opponent-survivor-3" onchange="updateOpponentSurvivorSelects()">
-              <option value="">選択してください</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">相手サバイバー4 <input type="checkbox" id="persist-opponent-survivor-4" style="margin-left: 8px;"> <span style="font-size: 12px;">保持</span></label>
-            <select id="opponent-survivor-4" onchange="updateOpponentSurvivorSelects()">
-              <option value="">選択してください</option>
-            </select>
+            <label class="form-label">相手サバイバー</label>
+            <div class="opponent-survivor-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+              <div>
+                <select id="opponent-survivor-1" onchange="updateOpponentSurvivorSelects()">
+                  <option value="">選択してください</option>
+                </select>
+                <label style="display: block; margin-top: 5px; font-size: 12px;">
+                  <input type="checkbox" id="persist-opponent-survivor-1" style="margin-right: 4px;">保持
+                </label>
+              </div>
+              <div>
+                <select id="opponent-survivor-2" onchange="updateOpponentSurvivorSelects()">
+                  <option value="">選択してください</option>
+                </select>
+                <label style="display: block; margin-top: 5px; font-size: 12px;">
+                  <input type="checkbox" id="persist-opponent-survivor-2" style="margin-right: 4px;">保持
+                </label>
+              </div>
+              <div>
+                <select id="opponent-survivor-3" onchange="updateOpponentSurvivorSelects()">
+                  <option value="">選択してください</option>
+                </select>
+                <label style="display: block; margin-top: 5px; font-size: 12px;">
+                  <input type="checkbox" id="persist-opponent-survivor-3" style="margin-right: 4px;">保持
+                </label>
+              </div>
+              <div>
+                <select id="opponent-survivor-4" onchange="updateOpponentSurvivorSelects()">
+                  <option value="">選択してください</option>
+                </select>
+                <label style="display: block; margin-top: 5px; font-size: 12px;">
+                  <input type="checkbox" id="persist-opponent-survivor-4" style="margin-right: 4px;">保持
+                </label>
+              </div>
+            </div>
           </div>
           
           <div class="form-group">
@@ -634,6 +667,29 @@
           </div>
           
           <button class="submit-button" onclick="submitMatch('hunter')">試合を記録</button>
+        </div>
+      </div>
+      
+      <!-- 総合勝率タブ -->
+      <div id="overall-tab" class="tab-content">
+        <!-- 期間フィルター -->
+        <div style="margin-bottom: 20px;">
+          <label style="font-size: 13px; color: #374151; margin-bottom: 5px; display: block; font-weight: 600;">期間フィルター</label>
+          <select id="overall-period-filter" onchange="updateOverallStatsTab()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            <option value="all">全期間</option>
+            <option value="recent100">百戦勝率</option>
+          </select>
+        </div>
+        
+        <!-- 総合勝率表示 -->
+        <div id="overall-stats-display"></div>
+        
+        <!-- 直近10試合の勝率推移グラフ -->
+        <div style="margin-top: 30px;">
+          <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 15px;">直近10試合の勝率推移</h3>
+          <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <canvas id="winrate-chart" style="max-height: 300px;"></canvas>
+          </div>
         </div>
       </div>
       
@@ -839,6 +895,19 @@
     
     // 期間フィルターにシーズンを追加
     function populatePeriodFilters() {
+      // 総合勝率タブの期間フィルター（全期間、百戦勝率、シーズン）
+      const overallFilter = document.getElementById('overall-period-filter');
+      if (overallFilter) {
+        const sortedSeasons = [...SEASONS].reverse();
+        sortedSeasons.forEach(season => {
+          const option = document.createElement('option');
+          option.value = season.id;
+          option.textContent = season.label;
+          overallFilter.appendChild(option);
+        });
+      }
+      
+      // 他のタブの期間フィルター（全期間、今日、直近7日、直近30日、シーズン）
       const filterIds = ['character-period-filter', 'map-period-filter', 'opponent-period-filter', 'history-period-filter'];
       
       filterIds.forEach(filterId => {
@@ -862,6 +931,56 @@
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
+    }
+    
+    // プレースホルダースタイルを更新
+    function updatePlaceholderStyle(select) {
+      if (!select) return;
+      if (select.value === '' || select.value === null) {
+        select.classList.add('placeholder');
+      } else {
+        select.classList.remove('placeholder');
+      }
+    }
+    
+    // 全てのselectにプレースホルダースタイルを初期化
+    function initializePlaceholderStyles() {
+      const allSelects = document.querySelectorAll('select');
+      allSelects.forEach(select => {
+        // 初期状態を設定
+        updatePlaceholderStyle(select);
+        
+        // changeイベントを追加
+        select.addEventListener('change', function() {
+          updatePlaceholderStyle(this);
+        });
+      });
+    }
+    
+    // タブのスクロール監視を初期化
+    function initializeTabScrollIndicator() {
+      const tabs = document.querySelector('.main-tabs');
+      if (!tabs) return;
+      
+      function updateScrollIndicator() {
+        const isScrollable = tabs.scrollWidth > tabs.clientWidth;
+        const isAtEnd = tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 5;
+        
+        if (isScrollable && !isAtEnd) {
+          tabs.classList.add('has-scroll');
+        } else {
+          tabs.classList.remove('has-scroll');
+        }
+      }
+      
+      // 初期状態を設定
+      updateScrollIndicator();
+      
+      // スクロールイベントを監視
+      tabs.addEventListener('scroll', updateScrollIndicator);
+      
+      // リサイズイベントを監視
+      window.addEventListener('resize', updateScrollIndicator);
     }
     
     // 今日の日付を取得
@@ -938,16 +1057,17 @@
     let selectedEscapeCount = { survivor: null, hunter: null };
     let matches = [];
     let editingMatchId = null;
-    let overallStatsMode = 'all'; // 'all' または 'recent100'
     
     // キャラクター使用回数を記録（サバイバー/ハンター別）
     let characterUsageCount = {
-      survivor: {}, // { '医師': 5, '傭兵': 8, ... }
-      hunter: {}    // { '写真家': 10, 'リッパー': 5, ... }
+      survivorUsed: {},   // サバイバーとして使った回数（サバイバー視点）
+      survivorFaced: {},  // サバイバーとして対戦した回数（ハンター視点）
+      hunterUsed: {},     // ハンターとして使った回数（ハンター視点）
+      hunterFaced: {}     // ハンターとして対戦した回数（サバイバー視点）
     };
     
     // キャラクター使用回数を増やす
-    function incrementCharacterUsage(perspective, characters) {
+    function incrementCharacterUsage(countType, characters) {
       if (!Array.isArray(characters)) {
         characters = [characters];
       }
@@ -955,17 +1075,17 @@
       characters.forEach(char => {
         if (!char) return;
         
-        if (!characterUsageCount[perspective][char]) {
-          characterUsageCount[perspective][char] = 0;
+        if (!characterUsageCount[countType][char]) {
+          characterUsageCount[countType][char] = 0;
         }
-        characterUsageCount[perspective][char]++;
+        characterUsageCount[countType][char]++;
       });
       
       saveCharacterUsageCount();
     }
     
     // キャラクター使用回数を減らす
-    function decrementCharacterUsage(perspective, characters) {
+    function decrementCharacterUsage(countType, characters) {
       if (!Array.isArray(characters)) {
         characters = [characters];
       }
@@ -973,12 +1093,12 @@
       characters.forEach(char => {
         if (!char) return;
         
-        if (characterUsageCount[perspective][char]) {
-          characterUsageCount[perspective][char]--;
+        if (characterUsageCount[countType][char]) {
+          characterUsageCount[countType][char]--;
           
           // 0になったら削除
-          if (characterUsageCount[perspective][char] <= 0) {
-            delete characterUsageCount[perspective][char];
+          if (characterUsageCount[countType][char] <= 0) {
+            delete characterUsageCount[countType][char];
           }
         }
       });
@@ -987,8 +1107,8 @@
     }
     
     // キャラクター使用回数をソート（使用回数順 → 配列定義順）
-    function sortCharactersByUsage(characters, perspective) {
-      const usageData = characterUsageCount[perspective] || {};
+    function sortCharactersByUsage(characters, countType) {
+      const usageData = characterUsageCount[countType] || {};
       
       return characters.slice().sort((a, b) => {
         const usageA = usageData[a] || 0;
@@ -1014,21 +1134,87 @@
       const saved = localStorage.getItem('identity5_character_usage');
       if (saved) {
         try {
-          characterUsageCount = JSON.parse(saved);
+          const loadedData = JSON.parse(saved);
+          
+          // 新しいデータ構造かチェック
+          if (loadedData.survivorUsed !== undefined) {
+            // 新しい構造
+            characterUsageCount = loadedData;
+          } else {
+            // 古い構造の場合、全試合データから再計算
+            console.log('Migrating character usage count structure...');
+            characterUsageCount = {
+              survivorUsed: {},
+              survivorFaced: {},
+              hunterUsed: {},
+              hunterFaced: {}
+            };
+            
+            // 全試合データから使用回数を再計算（保存は最後に1回だけ）
+            matches.forEach(match => {
+              if (match.perspective === 'survivor') {
+                // サバイバー使用回数
+                const survivors = [match.myCharacter, ...match.teammates];
+                survivors.forEach(char => {
+                  if (!char) return;
+                  if (!characterUsageCount.survivorUsed[char]) {
+                    characterUsageCount.survivorUsed[char] = 0;
+                  }
+                  characterUsageCount.survivorUsed[char]++;
+                });
+                
+                // ハンター対戦回数
+                const hunter = match.opponentHunter;
+                if (hunter) {
+                  if (!characterUsageCount.hunterFaced[hunter]) {
+                    characterUsageCount.hunterFaced[hunter] = 0;
+                  }
+                  characterUsageCount.hunterFaced[hunter]++;
+                }
+              } else {
+                // ハンター使用回数
+                const hunter = match.myCharacter;
+                if (hunter) {
+                  if (!characterUsageCount.hunterUsed[hunter]) {
+                    characterUsageCount.hunterUsed[hunter] = 0;
+                  }
+                  characterUsageCount.hunterUsed[hunter]++;
+                }
+                
+                // サバイバー対戦回数
+                const survivors = match.opponentSurvivors;
+                survivors.forEach(char => {
+                  if (!char) return;
+                  if (!characterUsageCount.survivorFaced[char]) {
+                    characterUsageCount.survivorFaced[char] = 0;
+                  }
+                  characterUsageCount.survivorFaced[char]++;
+                });
+              }
+            });
+            
+            // 再計算したデータを保存
+            saveCharacterUsageCount();
+          }
         } catch (e) {
           console.error('Failed to load character usage count:', e);
-          characterUsageCount = { survivor: {}, hunter: {} };
+          characterUsageCount = {
+            survivorUsed: {},
+            survivorFaced: {},
+            hunterUsed: {},
+            hunterFaced: {}
+          };
         }
       }
     }
     
     // キャラクター選択を再構築（使用回数順に更新）
     function repopulateCharacterSelects() {
-      // サバイバー選択
-      const survivorSelects = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3', 'opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
-      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivor');
+      // サバイバー選択（自分・味方）：サバイバー使用回数順
+      const mySurvivorSelects = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3'];
+      const sortedSurvivorsUsed = sortCharactersByUsage(SURVIVORS, 'survivorUsed');
       
-      survivorSelects.forEach(id => {
+      mySurvivorSelects.forEach(id => {
         const select = document.getElementById(id);
         const currentValue = select.value;
         
@@ -1036,7 +1222,7 @@
         select.innerHTML = '<option value="">選択してください</option>';
         
         // ソート済みのキャラクターを追加
-        sortedSurvivors.forEach(survivor => {
+        sortedSurvivorsUsed.forEach(survivor => {
           const option = document.createElement('option');
           option.value = survivor;
           option.textContent = survivor;
@@ -1045,13 +1231,16 @@
         
         // 値を復元
         select.value = currentValue;
+        
+        // プレースホルダースタイルを更新
+        updatePlaceholderStyle(select);
       });
       
-      // ハンター選択
-      const hunterSelects = ['my-hunter', 'opponent-hunter'];
-      const sortedHunters = sortCharactersByUsage(HUNTERS, 'hunter');
+      // サバイバー選択（相手）：サバイバー対戦回数順
+      const opponentSurvivorSelects = ['opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
+      const sortedSurvivorsFaced = sortCharactersByUsage(SURVIVORS, 'survivorFaced');
       
-      hunterSelects.forEach(id => {
+      opponentSurvivorSelects.forEach(id => {
         const select = document.getElementById(id);
         const currentValue = select.value;
         
@@ -1059,16 +1248,49 @@
         select.innerHTML = '<option value="">選択してください</option>';
         
         // ソート済みのキャラクターを追加
-        sortedHunters.forEach(hunter => {
+        sortedSurvivorsFaced.forEach(survivor => {
           const option = document.createElement('option');
-          option.value = hunter;
-          option.textContent = hunter;
+          option.value = survivor;
+          option.textContent = survivor;
           select.appendChild(option);
         });
         
         // 値を復元
         select.value = currentValue;
+        
+        // プレースホルダースタイルを更新
+        updatePlaceholderStyle(select);
       });
+      
+      // ハンター選択（自分）：ハンター使用回数順
+      const myHunterSelect = document.getElementById('my-hunter');
+      const myHunterCurrentValue = myHunterSelect.value;
+      const sortedHuntersUsed = sortCharactersByUsage(HUNTERS, 'hunterUsed');
+      
+      myHunterSelect.innerHTML = '<option value="">選択してください</option>';
+      sortedHuntersUsed.forEach(hunter => {
+        const option = document.createElement('option');
+        option.value = hunter;
+        option.textContent = hunter;
+        myHunterSelect.appendChild(option);
+      });
+      myHunterSelect.value = myHunterCurrentValue;
+      updatePlaceholderStyle(myHunterSelect);
+      
+      // ハンター選択（相手）：ハンター対戦回数順
+      const opponentHunterSelect = document.getElementById('opponent-hunter');
+      const opponentHunterCurrentValue = opponentHunterSelect.value;
+      const sortedHuntersFaced = sortCharactersByUsage(HUNTERS, 'hunterFaced');
+      
+      opponentHunterSelect.innerHTML = '<option value="">選択してください</option>';
+      sortedHuntersFaced.forEach(hunter => {
+        const option = document.createElement('option');
+        option.value = hunter;
+        option.textContent = hunter;
+        opponentHunterSelect.appendChild(option);
+      });
+      opponentHunterSelect.value = opponentHunterCurrentValue;
+      updatePlaceholderStyle(opponentHunterSelect);
     }
     
     // ページネーション用の変数
@@ -1081,12 +1303,19 @@
     
     // 初期化
     function init() {
+      // データを先に読み込む
+      loadData(); // データを読み込む
+      loadCharacterUsageCount(); // 使用回数を読み込む（マイグレーション含む）
+      
+      // 使用回数データを元にキャラクター選択肢を構築
       populateSelects();
       populatePeriodFilters(); // 期間フィルターにシーズンを追加
+      
+      // プレースホルダースタイルを初期化（選択肢更新の前に実行）
+      initializePlaceholderStyles();
+      
       updateSurvivorSelects(); // サバイバー選択肢の初期化
       updateOpponentSurvivorSelects(); // 相手サバイバー選択肢の初期化
-      loadData(); // データを読み込む（保持値の復元は後で）
-      loadCharacterUsageCount(); // 使用回数を読み込む
       
       // 保持された値を復元（DOM要素が完全に準備された後）
       loadPersistedValues('survivor');
@@ -1107,6 +1336,9 @@
       // 自キャラ別勝率のマップフィルターを更新
       updateCharacterMapFilter();
       
+      // タブのスクロール監視を初期化
+      initializeTabScrollIndicator();
+      
       updateAllWithFilters(); // フィルターと統計を更新
     }
     
@@ -1121,13 +1353,16 @@
       
       const selectIds = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3'];
       
+      // サバイバー使用回数順にソート
+      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivorUsed');
+      
       selectIds.forEach(id => {
         const select = document.getElementById(id);
         const currentValue = select.value;
         
         // 選択肢を再構築
         select.innerHTML = '<option value="">選択してください</option>';
-        SURVIVORS.forEach(survivor => {
+        sortedSurvivors.forEach(survivor => {
           // 自分が選択中か、他で選択されていない場合のみ表示
           if (survivor === currentValue || !selected.includes(survivor)) {
             const option = document.createElement('option');
@@ -1139,6 +1374,9 @@
         
         // 値を復元
         select.value = currentValue;
+        
+        // プレースホルダースタイルを更新
+        updatePlaceholderStyle(select);
       });
     }
     
@@ -1153,13 +1391,16 @@
       
       const selectIds = ['opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
       
+      // サバイバー対戦回数順にソート
+      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivorFaced');
+      
       selectIds.forEach(id => {
         const select = document.getElementById(id);
         const currentValue = select.value;
         
         // 選択肢を再構築
         select.innerHTML = '<option value="">選択してください</option>';
-        SURVIVORS.forEach(survivor => {
+        sortedSurvivors.forEach(survivor => {
           // 自分が選択中か、他で選択されていない場合のみ表示
           if (survivor === currentValue || !selected.includes(survivor)) {
             const option = document.createElement('option');
@@ -1171,18 +1412,21 @@
         
         // 値を復元
         select.value = currentValue;
+        
+        // プレースホルダースタイルを更新
+        updatePlaceholderStyle(select);
       });
     }
     
     // セレクトボックスにオプションを追加
     function populateSelects() {
-      // サバイバー選択（使用回数順にソート）
-      const survivorSelects = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3', 'opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
-      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivor');
+      // サバイバー選択（自分・味方）：サバイバー使用回数順にソート
+      const mySurvivorSelects = ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3'];
+      const sortedSurvivorsUsed = sortCharactersByUsage(SURVIVORS, 'survivorUsed');
       
-      survivorSelects.forEach(id => {
+      mySurvivorSelects.forEach(id => {
         const select = document.getElementById(id);
-        sortedSurvivors.forEach(survivor => {
+        sortedSurvivorsUsed.forEach(survivor => {
           const option = document.createElement('option');
           option.value = survivor;
           option.textContent = survivor;
@@ -1190,18 +1434,40 @@
         });
       });
       
-      // ハンター選択（使用回数順にソート）
-      const hunterSelects = ['my-hunter', 'opponent-hunter'];
-      const sortedHunters = sortCharactersByUsage(HUNTERS, 'hunter');
+      // サバイバー選択（相手）：サバイバー対戦回数順にソート
+      const opponentSurvivorSelects = ['opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'];
+      const sortedSurvivorsFaced = sortCharactersByUsage(SURVIVORS, 'survivorFaced');
       
-      hunterSelects.forEach(id => {
+      opponentSurvivorSelects.forEach(id => {
         const select = document.getElementById(id);
-        sortedHunters.forEach(hunter => {
+        sortedSurvivorsFaced.forEach(survivor => {
           const option = document.createElement('option');
-          option.value = hunter;
-          option.textContent = hunter;
+          option.value = survivor;
+          option.textContent = survivor;
           select.appendChild(option);
         });
+      });
+      
+      // ハンター選択（自分）：ハンター使用回数順にソート
+      const myHunterSelect = document.getElementById('my-hunter');
+      const sortedHuntersUsed = sortCharactersByUsage(HUNTERS, 'hunterUsed');
+      
+      sortedHuntersUsed.forEach(hunter => {
+        const option = document.createElement('option');
+        option.value = hunter;
+        option.textContent = hunter;
+        myHunterSelect.appendChild(option);
+      });
+      
+      // ハンター選択（相手）：ハンター対戦回数順にソート
+      const opponentHunterSelect = document.getElementById('opponent-hunter');
+      const sortedHuntersFaced = sortCharactersByUsage(HUNTERS, 'hunterFaced');
+      
+      sortedHuntersFaced.forEach(hunter => {
+        const option = document.createElement('option');
+        option.value = hunter;
+        option.textContent = hunter;
+        opponentHunterSelect.appendChild(option);
       });
       
       const mapSelects = ['survivor-map', 'hunter-map'];
@@ -1322,13 +1588,16 @@
       
       const selected = [mySurvivor, teammate1, teammate2, teammate3].filter(v => v);
       
+      // サバイバー使用回数順にソート
+      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivorUsed');
+      
       ['my-survivor', 'teammate-1', 'teammate-2', 'teammate-3'].forEach(id => {
         const select = document.getElementById(id);
         const currentValue = select.value;
         
         // 選択肢を再構築
         select.innerHTML = '<option value="">選択してください</option>';
-        SURVIVORS.forEach(survivor => {
+        sortedSurvivors.forEach(survivor => {
           // 自分以外で選択されているキャラは除外
           if (!selected.includes(survivor) || survivor === currentValue) {
             const option = document.createElement('option');
@@ -1340,6 +1609,9 @@
         
         // 現在の値を復元
         select.value = currentValue;
+        
+        // プレースホルダースタイルを更新
+        updatePlaceholderStyle(select);
       });
     }
     
@@ -1352,13 +1624,16 @@
       
       const selected = [opponent1, opponent2, opponent3, opponent4].filter(v => v);
       
+      // サバイバー対戦回数順にソート
+      const sortedSurvivors = sortCharactersByUsage(SURVIVORS, 'survivorFaced');
+      
       ['opponent-survivor-1', 'opponent-survivor-2', 'opponent-survivor-3', 'opponent-survivor-4'].forEach(id => {
         const select = document.getElementById(id);
         const currentValue = select.value;
         
         // 選択肢を再構築
         select.innerHTML = '<option value="">選択してください</option>';
-        SURVIVORS.forEach(survivor => {
+        sortedSurvivors.forEach(survivor => {
           // 自分以外で選択されているキャラは除外
           if (!selected.includes(survivor) || survivor === currentValue) {
             const option = document.createElement('option');
@@ -1370,6 +1645,9 @@
         
         // 現在の値を復元
         select.value = currentValue;
+        
+        // プレースホルダースタイルを更新
+        updatePlaceholderStyle(select);
       });
     }
     
@@ -1500,6 +1778,12 @@
       // 自キャラ別勝率のマップフィルターを更新（視点が変わったので）
       updateCharacterMapFilter();
       
+      // 総合勝率タブが表示されている場合は更新
+      const overallTab = document.getElementById('overall-tab');
+      if (overallTab && overallTab.classList.contains('active')) {
+        updateOverallStatsTab();
+      }
+      
       updateAllWithFilters();
     }
     
@@ -1518,6 +1802,11 @@
       // 設定タブに切り替えた時はデータ情報を更新
       if (tabName === 'settings') {
         updateDataInfo();
+      }
+      
+      // 総合勝率タブに切り替えた時は総合勝率とグラフを更新
+      if (tabName === 'overall') {
+        updateOverallStatsTab();
       }
       
       updateAllStats();
@@ -1610,14 +1899,14 @@
         if (oldMatch) {
           if (oldMatch.perspective === 'survivor') {
             // サバイバー視点：自分、味方3人の使用回数を減らす
-            decrementCharacterUsage('survivor', [oldMatch.myCharacter, ...oldMatch.teammates]);
-            // 対戦相手ハンターの使用回数を減らす
-            decrementCharacterUsage('hunter', oldMatch.opponentHunter);
+            decrementCharacterUsage('survivorUsed', [oldMatch.myCharacter, ...oldMatch.teammates]);
+            // 対戦相手ハンターの対戦回数を減らす
+            decrementCharacterUsage('hunterFaced', oldMatch.opponentHunter);
           } else {
             // ハンター視点：自分の使用回数を減らす
-            decrementCharacterUsage('hunter', oldMatch.myCharacter);
-            // 対戦相手サバイバー4人の使用回数を減らす
-            decrementCharacterUsage('survivor', oldMatch.opponentSurvivors);
+            decrementCharacterUsage('hunterUsed', oldMatch.myCharacter);
+            // 対戦相手サバイバー4人の対戦回数を減らす
+            decrementCharacterUsage('survivorFaced', oldMatch.opponentSurvivors);
           }
         }
         
@@ -1628,14 +1917,14 @@
       // 新しいデータの使用回数を増やす
       if (perspective === 'survivor') {
         // サバイバー視点：自分、味方3人の使用回数を増やす
-        incrementCharacterUsage('survivor', [match.myCharacter, ...match.teammates]);
-        // 対戦相手ハンターの使用回数を増やす
-        incrementCharacterUsage('hunter', match.opponentHunter);
+        incrementCharacterUsage('survivorUsed', [match.myCharacter, ...match.teammates]);
+        // 対戦相手ハンターの対戦回数を増やす
+        incrementCharacterUsage('hunterFaced', match.opponentHunter);
       } else {
         // ハンター視点：自分の使用回数を増やす
-        incrementCharacterUsage('hunter', match.myCharacter);
-        // 対戦相手サバイバー4人の使用回数を増やす
-        incrementCharacterUsage('survivor', match.opponentSurvivors);
+        incrementCharacterUsage('hunterUsed', match.myCharacter);
+        // 対戦相手サバイバー4人の対戦回数を増やす
+        incrementCharacterUsage('survivorFaced', match.opponentSurvivors);
       }
       
       matches.push(match);
@@ -1657,6 +1946,12 @@
       
       alert('試合を記録しました！');
       updateAllWithFilters();
+      
+      // 総合勝率タブが表示されている場合は更新
+      const overallTab = document.getElementById('overall-tab');
+      if (overallTab && overallTab.classList.contains('active')) {
+        updateOverallStatsTab();
+      }
     }
     
     // フォームをリセット（保持設定に応じて）
@@ -1926,6 +2221,10 @@
                 element.value = getToday(); // 日付は今日に戻す
               } else {
                 element.value = '';
+                // selectの場合、プレースホルダースタイルを更新
+                if (element.tagName === 'SELECT') {
+                  updatePlaceholderStyle(element);
+                }
               }
             }
             
@@ -1964,6 +2263,10 @@
                 element.value = getToday(); // 日付は今日に戻す
               } else {
                 element.value = '';
+                // selectの場合、プレースホルダースタイルを更新
+                if (element.tagName === 'SELECT') {
+                  updatePlaceholderStyle(element);
+                }
               }
             }
             
@@ -2000,7 +2303,6 @@
     
     // 全ての統計を更新
     function updateAllStats() {
-      updateOverallStats();
       updateCharacterStats();
       updateMapStats();
       updateOpponentStats();
@@ -2084,10 +2386,18 @@
         return;
       }
       
-      // 直近100試合モードの場合はフィルタリング
+      // 期間フィルターを取得
+      const periodFilter = document.getElementById('input-period-filter');
+      const periodValue = periodFilter ? periodFilter.value : 'all';
+      
+      // 期間でフィルタリング
       let displayMatches = perspectiveMatches;
-      if (overallStatsMode === 'recent100') {
+      if (periodValue === 'recent100') {
+        // 百戦勝率
         displayMatches = perspectiveMatches.slice(-100);
+      } else if (periodValue !== 'all') {
+        // シーズンフィルター
+        displayMatches = filterByPeriod(perspectiveMatches, periodValue);
       }
       
       const stats = calculateWinrate(displayMatches, currentPerspective);
@@ -2098,19 +2408,24 @@
       const winrateDecimal = filtered.length > 0 ? 
         (stats.wins / filtered.length * 100).toFixed(2) : '0.00';
       
-      const isRecent100 = overallStatsMode === 'recent100';
-      const buttonText = isRecent100 ? '全期間' : '百戦勝率';
-      const statsTitle = isRecent100 ? '百戦勝率' : '総合勝率';
+      // タイトルを決定
+      let statsTitle = '総合勝率';
+      if (periodValue === 'recent100') {
+        statsTitle = '百戦勝率';
+      } else if (periodValue !== 'all') {
+        // シーズンの場合
+        const season = SEASONS.find(s => s.id === periodValue);
+        if (season) {
+          statsTitle = `総合勝率（${season.label}）`;
+        }
+      }
       
       // 百戦勝率モードでは試合数を表示しない
-      const matchCountText = isRecent100 ? '' : ` (${stats.totalWithDraws}試合)`;
+      const matchCountText = periodValue === 'recent100' ? '' : ` (${stats.totalWithDraws}試合)`;
       
       let html = `<div class="stats-card" style="margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div style="font-size: 14px; font-weight: 600; color: #666;">${statsTitle}</div>
-          <button onclick="toggleOverallStatsMode()" style="padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;">
-            ${buttonText}
-          </button>
         </div>
         <div class="overall-stats-display">
           <div class="winrate-big">${winrateDecimal}%</div>
@@ -2124,10 +2439,193 @@
       container.innerHTML = html;
     }
     
-    // 総合勝率の表示モードを切り替え
-    function toggleOverallStatsMode() {
-      overallStatsMode = overallStatsMode === 'all' ? 'recent100' : 'all';
-      updateOverallStats();
+    // 総合勝率タブの更新
+    let winrateChart = null; // グラフのインスタンスを保持
+    
+    function updateOverallStatsTab() {
+      const container = document.getElementById('overall-stats-display');
+      let perspectiveMatches = matches.filter(m => m.perspective === currentPerspective);
+      
+      if (perspectiveMatches.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>まだ試合データがありません</p></div>';
+        // グラフも空にする
+        if (winrateChart) {
+          winrateChart.destroy();
+          winrateChart = null;
+        }
+        return;
+      }
+      
+      // 期間フィルターを取得
+      const periodFilter = document.getElementById('overall-period-filter');
+      const periodValue = periodFilter ? periodFilter.value : 'all';
+      
+      // 期間でフィルタリング
+      let displayMatches = perspectiveMatches;
+      if (periodValue === 'recent100') {
+        // 百戦勝率
+        displayMatches = perspectiveMatches.slice(-100);
+      } else if (periodValue !== 'all') {
+        // シーズンフィルター
+        displayMatches = filterByPeriod(perspectiveMatches, periodValue);
+      }
+      
+      const stats = calculateWinrate(displayMatches, currentPerspective);
+      const streak = calculateWinStreak(perspectiveMatches, currentPerspective); // 連勝は全期間で計算
+      
+      // 小数点第二位まで計算
+      const filtered = displayMatches.filter(m => m.result !== 'draw');
+      const winrateDecimal = filtered.length > 0 ? 
+        (stats.wins / filtered.length * 100).toFixed(2) : '0.00';
+      
+      // タイトルを決定
+      let statsTitle = '総合勝率';
+      if (periodValue === 'recent100') {
+        statsTitle = '百戦勝率';
+      } else if (periodValue !== 'all') {
+        // シーズンの場合
+        const season = SEASONS.find(s => s.id === periodValue);
+        if (season) {
+          statsTitle = `総合勝率（${season.label}）`;
+        }
+      }
+      
+      // 百戦勝率モードでは試合数を表示しない
+      const matchCountText = periodValue === 'recent100' ? '' : ` (${stats.totalWithDraws}試合)`;
+      
+      let html = `<div class="stats-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="font-size: 14px; font-weight: 600; color: #666;">${statsTitle}</div>
+        </div>
+        <div class="overall-stats-display">
+          <div class="winrate-big">${winrateDecimal}%</div>
+          <div class="record-text">${stats.wins}勝 ${stats.losses}敗 ${stats.draws}分${matchCountText}</div>`;
+      
+      if (streak >= 2) {
+        html += `<div class="streak-badge"><span class="streak-icon">🔥</span>${streak}連勝中！</div>`;
+      }
+      
+      html += `</div></div>`;
+      container.innerHTML = html;
+      
+      // グラフを更新
+      updateWinrateChart(perspectiveMatches);
+    }
+    
+    // 直近10試合の勝率推移グラフを描画
+    function updateWinrateChart(perspectiveMatches) {
+      try {
+        // Chart.jsが読み込まれているか確認
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js is not loaded');
+          return;
+        }
+        
+        const canvas = document.getElementById('winrate-chart');
+        if (!canvas) {
+          console.error('Canvas element not found');
+          return;
+        }
+        
+        // 直近10試合を取得
+        const recentMatches = perspectiveMatches.slice(-10);
+        
+        if (recentMatches.length === 0) {
+          // データがない場合
+          if (winrateChart) {
+            winrateChart.destroy();
+            winrateChart = null;
+          }
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+        
+        // 累積勝率を計算
+        const labels = [];
+        const data = [];
+        
+        recentMatches.forEach((match, index) => {
+          // 引き分けを除いた勝率を計算
+          const matchesExcludingDraws = recentMatches.slice(0, index + 1).filter(m => m.result !== 'draw');
+          const winsCount = matchesExcludingDraws.filter(m => 
+            (currentPerspective === 'survivor' && m.result === 'survivor_win') || 
+            (currentPerspective === 'hunter' && m.result === 'hunter_win')
+          ).length;
+          
+          const winrate = matchesExcludingDraws.length > 0 ? 
+            (winsCount / matchesExcludingDraws.length * 100) : 0;
+          
+          labels.push(`${index + 1}試合目`);
+          data.push(winrate.toFixed(2));
+        });
+        
+        // 既存のグラフを破棄
+        if (winrateChart) {
+          winrateChart.destroy();
+          winrateChart = null;
+        }
+        
+        // 新しいグラフを作成
+        const ctx = canvas.getContext('2d');
+        winrateChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '勝率 (%)',
+              data: data,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4,
+              fill: true,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#3b82f6',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return '勝率: ' + context.parsed.y + '%';
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                },
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error creating chart:', error);
+        // エラーが発生してもアプリは動作し続ける
+      }
     }
     
     // ページネーションのHTMLを生成
