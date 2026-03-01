@@ -4,29 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
-  <meta name="description" content="第五人格（Identity V）のランク戦の戦績を簡単に記録・管理できる無料ツール。勝率、キャラ別統計、マップ別データを自動計算。サバイバー/ハンター両対応で完全無料。">
-  <meta name="keywords" content="第五人格,Identity V,戦績,勝率,トラッカー,ランク戦,統計,サバイバー,ハンター">
-
-  <!-- OGP（SNS共有用） -->
-  <meta property="og:title" content="第五人格トラッカー | 戦績管理・勝率計算">
-  <meta property="og:description" content="第五人格のランク戦戦績を簡単に記録・管理">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://idv-tracker.github.io/">
+  <meta name="description" content="第五人格のランク戦戦績を簡単に記録・管理。勝率、キャラ別・マップ別・相手別の統計を自動計算。サバイバー/ハンター両対応。完全無料で使えるツール。">
   
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="第五人格トラッカー">
-  <meta name="twitter:description" content="戦績管理・勝率計算アプリ">
-  
-  <!-- アイコン設定 -->
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" type="image/png" sizes="180x180" href="icon.png">
-  <link rel="shortcut icon" href="icon.png">
-  
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6919699894432312"
-     crossorigin="anonymous"></script>
-
-
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EL23B3L2TD"></script>
   <script>
@@ -608,6 +587,61 @@
       text-align: center;
       color: #9ca3af;
       font-size: 13px;
+    }
+    
+    /* ===== 並び替えコントロール ===== */
+    .sort-control {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+      margin-bottom: 15px;
+    }
+    .sort-key-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+    .sort-key-btn:hover { color: #374151; }
+    .sort-key-btn.active {
+      background: white;
+      color: #0f3460;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .sort-divider {
+      width: 1px;
+      height: 24px;
+      background: #cbd5e1;
+      margin: 0 2px;
+    }
+    .sort-arrow-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #9ca3af;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sort-arrow-btn:hover { color: #374151; }
+    .sort-arrow-btn.active {
+      background: white;
+      color: #3b82f6;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
   </style>
   
@@ -1814,6 +1848,69 @@
       matchHistory: 1
     };
     const itemsPerPage = 20;
+    
+    // 並び替え状態管理
+    // sortKey: 'winrate' | 'matches', sortOrder: 'desc' | 'asc'
+    const sortState = {
+      character:      { key: 'winrate', order: 'desc' },
+      map:            { key: 'winrate', order: 'desc' },
+      opponentHunter: { key: 'winrate', order: 'desc' },
+      teammate:       { key: 'winrate', order: 'desc' },
+      opponent:       { key: 'winrate', order: 'desc' }
+    };
+    
+    // 並び替えキー切替
+    function setSortKey(tab, key) {
+      sortState[tab].key = key;
+      updateAllStats();
+    }
+    
+    // 並び替え順序切替
+    function setSortOrder(tab, order) {
+      sortState[tab].order = order;
+      updateAllStats();
+    }
+    
+    // 並び替えコントロールHTML生成
+    function generateSortButtons(tab) {
+      const state = sortState[tab];
+      const wrActive = state.key === 'winrate' ? ' active' : '';
+      const mcActive = state.key === 'matches' ? ' active' : '';
+      const descActive = state.order === 'desc' ? ' active' : '';
+      const ascActive = state.order === 'asc' ? ' active' : '';
+      
+      return `<div class="sort-control">
+        <button class="sort-key-btn${wrActive}" onclick="setSortKey('${tab}', 'winrate')">勝率</button>
+        <button class="sort-key-btn${mcActive}" onclick="setSortKey('${tab}', 'matches')">試合数</button>
+        <div class="sort-divider"></div>
+        <button class="sort-arrow-btn${descActive}" onclick="setSortOrder('${tab}', 'desc')">↓</button>
+        <button class="sort-arrow-btn${ascActive}" onclick="setSortOrder('${tab}', 'asc')">↑</button>
+      </div>`;
+    }
+    
+    // 汎用ソート関数
+    function sortByState(keys, statsMap, perspective, state) {
+      return keys.sort((a, b) => {
+        const statsA = calculateWinrate(statsMap[a], perspective);
+        const statsB = calculateWinrate(statsMap[b], perspective);
+        
+        let primary, secondary;
+        if (state.key === 'winrate') {
+          primary = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+          secondary = statsB.totalWithDraws - statsA.totalWithDraws;
+        } else {
+          primary = statsB.totalWithDraws - statsA.totalWithDraws;
+          secondary = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
+        }
+        
+        if (state.order === 'asc') {
+          primary = -primary;
+          secondary = -secondary;
+        }
+        
+        return primary !== 0 ? primary : secondary;
+      });
+    }
     
     // 初期化
     function init() {
@@ -3460,24 +3557,15 @@
       // 苦手キャラクターを検出
       const weakCharacters = detectWeaknesses(characterStats);
       
-      const sortedChars = Object.keys(characterStats).sort((a, b) => {
-        const statsA = calculateWinrate(characterStats[a], currentPerspective);
-        const statsB = calculateWinrate(characterStats[b], currentPerspective);
-        
-        // 勝率で比較
-        const winrateA = parseFloat(statsA.winrate);
-        const winrateB = parseFloat(statsB.winrate);
-        const winrateDiff = winrateB - winrateA;
-        if (winrateDiff !== 0) return winrateDiff;
-        
-        // 勝率が同じなら試合数で比較（引き分け含む）
-        return statsB.totalWithDraws - statsA.totalWithDraws;
-      });
+      const sortedChars = sortByState(Object.keys(characterStats), characterStats, currentPerspective, sortState.character);
       
       let html = '';
       
       // 苦手キャラクターを表示
       html += generateWeaknessHTML(weakCharacters, 'キャラクター', '👤');
+      
+      // 並び替えボタン
+      html += generateSortButtons('character');
       
       html += `<div class="stats-card">
         <div class="stats-title">キャラクター別勝率（${currentPerspective === 'survivor' ? 'サバイバー' : 'ハンター'}）</div>
@@ -3549,22 +3637,15 @@
       // 苦手マップを検出
       const weakMaps = detectWeaknesses(mapStats);
       
-      const sortedMaps = Object.keys(mapStats).sort((a, b) => {
-        const statsA = calculateWinrate(mapStats[a], currentPerspective);
-        const statsB = calculateWinrate(mapStats[b], currentPerspective);
-        
-        // 勝率で比較
-        const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
-        if (winrateDiff !== 0) return winrateDiff;
-        
-        // 勝率が同じなら試合数で比較（引き分け含む）
-        return statsB.totalWithDraws - statsA.totalWithDraws;
-      });
+      const sortedMaps = sortByState(Object.keys(mapStats), mapStats, currentPerspective, sortState.map);
       
       let html = '';
       
       // 苦手マップを表示
       html += generateWeaknessHTML(weakMaps, 'マップ', '🗺️');
+      
+      // 並び替えボタン
+      html += generateSortButtons('map');
       
       html += `<div class="stats-card">
         <div class="stats-title">マップ別勝率</div>
@@ -3660,20 +3741,15 @@
         // 苦手味方を表示
         html += generateWeaknessHTML(weakTeammates, '味方キャラクター', '👥');
         
+        // 並び替えボタン（対戦相手ハンター用）
+        html += generateSortButtons('opponentHunter');
+        
         // 対戦相手ハンター別勝率
         html += `<div class="stats-card">
           <div class="stats-title">対戦相手ハンター別勝率</div>
           <div class="bar-chart-horizontal">`;
         
-        const sortedHunters = Object.keys(hunterStats).sort((a, b) => {
-          const statsA = calculateWinrate(hunterStats[a], currentPerspective);
-          const statsB = calculateWinrate(hunterStats[b], currentPerspective);
-          
-          const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
-          if (winrateDiff !== 0) return winrateDiff;
-          
-          return statsB.totalWithDraws - statsA.totalWithDraws;
-        });
+        const sortedHunters = sortByState(Object.keys(hunterStats), hunterStats, currentPerspective, sortState.opponentHunter);
         
         const totalHunters = sortedHunters.length;
         const totalHunterPages = Math.ceil(totalHunters / itemsPerPage);
@@ -3707,19 +3783,12 @@
         html += '</div>';
         
         // 味方編成別勝率
+        html += generateSortButtons('teammate');
         html += `<div class="stats-card">
           <div class="stats-title">味方編成別勝率</div>
           <div class="bar-chart-horizontal">`;
         
-        const sortedTeammates = Object.keys(teammateStats).sort((a, b) => {
-          const statsA = calculateWinrate(teammateStats[a], currentPerspective);
-          const statsB = calculateWinrate(teammateStats[b], currentPerspective);
-          
-          const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
-          if (winrateDiff !== 0) return winrateDiff;
-          
-          return statsB.totalWithDraws - statsA.totalWithDraws;
-        });
+        const sortedTeammates = sortByState(Object.keys(teammateStats), teammateStats, currentPerspective, sortState.teammate);
         
         const totalTeammates = sortedTeammates.length;
         const totalTeammatePages = Math.ceil(totalTeammates / itemsPerPage);
@@ -3773,19 +3842,14 @@
         // 苦手サバイバーを表示
         html += generateWeaknessHTML(weakSurvivors, '対戦相手（サバイバー）', '👤');
         
+        // 並び替えボタン
+        html += generateSortButtons('opponent');
+        
         html += `<div class="stats-card">
           <div class="stats-title">対戦相手サバイバー別勝率</div>
           <div class="bar-chart-horizontal">`;
         
-        const sortedSurvivors = Object.keys(survivorStats).sort((a, b) => {
-          const statsA = calculateWinrate(survivorStats[a], currentPerspective);
-          const statsB = calculateWinrate(survivorStats[b], currentPerspective);
-          
-          const winrateDiff = parseFloat(statsB.winrate) - parseFloat(statsA.winrate);
-          if (winrateDiff !== 0) return winrateDiff;
-          
-          return statsB.totalWithDraws - statsA.totalWithDraws;
-        });
+        const sortedSurvivors = sortByState(Object.keys(survivorStats), survivorStats, currentPerspective, sortState.opponent);
         
         const totalSurvivors = sortedSurvivors.length;
         const totalPages = Math.ceil(totalSurvivors / itemsPerPage);
