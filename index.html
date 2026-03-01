@@ -3,28 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
-  <meta name="description" content="第五人格（Identity V）のランク戦の戦績を簡単に記録・管理できる無料ツール。勝率、キャラ別統計、マップ別データを自動計算。サバイバー/ハンター両対応で完全無料。">
-  <meta name="keywords" content="第五人格,Identity V,戦績,勝率,トラッカー,ランク戦,統計,サバイバー,ハンター">
-
-  <!-- OGP（SNS共有用） -->
-  <meta property="og:title" content="第五人格トラッカー | 戦績管理・勝率計算">
-  <meta property="og:description" content="第五人格のランク戦戦績を簡単に記録・管理">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://idv-tracker.github.io/">
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="第五人格トラッカー">
-  <meta name="twitter:description" content="戦績管理・勝率計算アプリ">
-  
-  <!-- アイコン設定 -->
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" type="image/png" sizes="180x180" href="icon.png">
-  <link rel="shortcut icon" href="icon.png">
-  
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6919699894432312"
-     crossorigin="anonymous"></script>
+  <title>第五人格トラッカー | 戦績管理・勝率計算アプリ</title>
+  <meta name="description" content="第五人格のランク戦戦績を簡単に記録・管理。勝率、キャラ別・マップ別・相手別の統計を自動計算。サバイバー/ハンター両対応。完全無料で使えるツール。">
   
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EL23B3L2TD"></script>
@@ -971,10 +951,54 @@
     body.dark-mode #data-info {
       color: #d1d5db !important;
     }
+    /* ===== 苦手カード ===== */
+    .weakness-card {
+      background: #f8f9fa;
+      border-left: 3px solid #6c757d;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    .weakness-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+    .weakness-name {
+      color: #212529;
+    }
+    .weakness-count {
+      font-size: 11px;
+      color: #6c757d;
+      margin-left: 6px;
+    }
+    .weakness-rate {
+      font-weight: 600;
+      color: #6c757d;
+    }
+    .weakness-rate.weak {
+      color: #dc3545;
+    }
     /* ダークモード: 苦手キャラ警告 */
     body.dark-mode .weakness-card {
-      background: #2a1a1a !important;
-      border-color: #5a2a2a !important;
+      background: #1e1e34;
+      border-color: #f87171;
+    }
+    body.dark-mode .weakness-title {
+      color: #d1d5db;
+    }
+    body.dark-mode .weakness-name {
+      color: #d1d5db;
+    }
+    body.dark-mode .weakness-count {
+      color: #8888aa;
+    }
+    body.dark-mode .weakness-rate {
+      color: #8888aa;
+    }
+    body.dark-mode .weakness-rate.weak {
+      color: #f87171;
     }
     /* ダークモード: ページネーション */
     body.dark-mode .pagination button {
@@ -989,10 +1013,24 @@
       background: #0f3460;
       color: white;
     }
-    /* ダークモード: チャート */
-    body.dark-mode canvas {
-      filter: invert(0.88) hue-rotate(180deg);
+    /* ===== グラフコンテナ ===== */
+    .chart-section-title {
+      color: #374151;
     }
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    body.dark-mode .chart-section-title {
+      color: #d1d5db;
+    }
+    body.dark-mode .chart-container {
+      background: #222238;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    /* ダークモード: チャート - JS側で色制御 */
     /* ダークモード: プライバシーリンク */
     body.dark-mode a[href="privacy.html"] {
       color: #6b7280 !important;
@@ -1213,8 +1251,8 @@
         
         <!-- 直近10試合の勝率推移グラフ -->
         <div style="margin-top: 30px;">
-          <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 15px;">直近10試合の勝率推移</h3>
-          <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <h3 class="chart-section-title" style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">直近10試合の勝率推移</h3>
+          <div class="chart-container">
             <canvas id="winrate-chart" style="max-height: 300px;"></canvas>
           </div>
         </div>
@@ -3634,6 +3672,11 @@
         
         // 新しいグラフを作成
         const ctx = canvas.getContext('2d');
+        const isDark = document.body.classList.contains('dark-mode');
+        const tickColor = isDark ? '#9ca3af' : '#666';
+        const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
+        const pointBorder = isDark ? '#222238' : '#fff';
+        
         winrateChart = new Chart(ctx, {
           type: 'line',
           data: {
@@ -3642,13 +3685,13 @@
               label: '勝率 (%)',
               data: data,
               borderColor: '#3b82f6',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)',
               tension: 0.4,
               fill: true,
               pointRadius: 4,
               pointHoverRadius: 6,
               pointBackgroundColor: '#3b82f6',
-              pointBorderColor: '#fff',
+              pointBorderColor: pointBorder,
               pointBorderWidth: 2
             }]
           },
@@ -3672,15 +3715,19 @@
                 beginAtZero: true,
                 max: 100,
                 ticks: {
+                  color: tickColor,
                   callback: function(value) {
                     return value + '%';
                   }
                 },
                 grid: {
-                  color: 'rgba(0, 0, 0, 0.05)'
+                  color: gridColor
                 }
               },
               x: {
+                ticks: {
+                  color: tickColor
+                },
                 grid: {
                   display: false
                 }
@@ -3926,20 +3973,20 @@
       const displayTitle = `苦手${title}`;
       
       let html = `
-        <div style="background: #f8f9fa; border-left: 3px solid #6c757d; padding: 12px 15px; margin-bottom: 15px; border-radius: 4px;">
-          <div style="font-weight: 600; font-size: 13px; color: #495057; margin-bottom: 8px;">${displayTitle}</div>
+        <div class="weakness-card">
+          <div class="weakness-title">${displayTitle}</div>
           <div style="display: flex; flex-direction: column; gap: 6px;">
       `;
       
       weaknesses.forEach((item, index) => {
-        const textColor = item.winrate <= threshold ? '#dc3545' : '#6c757d';
+        const isWeak = item.winrate <= threshold;
         html += `
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
             <div>
-              <span style="color: #212529;">${index + 1}. ${item.name}</span>
-              <span style="font-size: 11px; color: #6c757d; margin-left: 6px;">(${item.total}試合)</span>
+              <span class="weakness-name">${index + 1}. ${item.name}</span>
+              <span class="weakness-count">(${item.total}試合)</span>
             </div>
-            <div style="font-weight: 600; color: ${textColor};">${item.winrate.toFixed(1)}%</div>
+            <div class="weakness-rate${isWeak ? ' weak' : ''}">${item.winrate.toFixed(1)}%</div>
           </div>
         `;
       });
@@ -4730,6 +4777,8 @@
       const isOn = document.getElementById('dark-mode-switch').checked;
       document.body.classList.toggle('dark-mode', isOn);
       localStorage.setItem('identity5_dark_mode', isOn ? 'on' : 'off');
+      // グラフの色を更新
+      updateOverallStatsTab();
     }
     
     function loadDarkMode() {
